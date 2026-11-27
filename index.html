@@ -1,0 +1,2555 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MỆNH LÝ — Tử Vi Đẩu Số Trọn Đời</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Noto Serif -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif:wght@600;700&display=swap" rel="stylesheet" />
+  <!-- React, ReactDOM & Babel Standalone -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Noto Serif', 'serif'],
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    @media print {
+      body { background-color: #ffffff !important; }
+      .print\:hidden { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-[#F3F0E5] text-[#1E2B27] antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+
+    // Helper hiển thị icon Lucide trong môi trường HTML thuần
+    const LucideIcon = ({ name, className = "w-4 h-4" }) => {
+      const svgHtml = useMemo(() => {
+        if (window.lucide && window.lucide.icons && window.lucide.icons[name]) {
+          return window.lucide.icons[name].toSvg({ class: className });
+        }
+        return '';
+      }, [name, className]);
+      return <span className="inline-flex items-center justify-center shrink-0" dangerouslySetInnerHTML={{ __html: svgHtml }} />;
+    };
+
+    /**
+     * 1. LUNAR CALENDAR ENGINE (Chuẩn múi giờ Việt Nam UTC+7, chính xác 1900 - 2100)
+     */
+    const LUNAR_INFO_1900_2100 = [
+      0x04bd8, 0x04ae0, 0x0a570, 0x054d5, 0x0d260, 0x0d950, 0x16554, 0x056a0, 0x09ad0, 0x055d2,
+      0x04ae0, 0x0a5b6, 0x0a4d0, 0x0d250, 0x1d255, 0x0b540, 0x0d6a0, 0x0ada2, 0x095b0, 0x14977,
+      0x04970, 0x0a4b0, 0x0b4b5, 0x06a50, 0x06d40, 0x1ab54, 0x02b60, 0x09570, 0x052f2, 0x04970,
+      0x06566, 0x0d4a0, 0x0ea50, 0x06e95, 0x05ad0, 0x02b60, 0x186e3, 0x092e0, 0x1c8d7, 0x0c950,
+      0x0d4a0, 0x1d8a6, 0x0b550, 0x056a0, 0x1a5b4, 0x025d0, 0x092d0, 0x0d2b2, 0x0a950, 0x0b557,
+      0x06ca0, 0x0b550, 0x15355, 0x04da0, 0x0a5b0, 0x14573, 0x052b0, 0x0a9a8, 0x0e950, 0x06aa0,
+      0x0aea6, 0x0ab50, 0x04b60, 0x0aae4, 0x0a570, 0x05260, 0x0f263, 0x0d950, 0x05b57, 0x056a0,
+      0x096d0, 0x04dd5, 0x04ad0, 0x0a4d0, 0x0d4d4, 0x0d250, 0x0d558, 0x0b540, 0x0b6a0, 0x195a6,
+      0x095b0, 0x049b0, 0x0a974, 0x0a4b0, 0x0b27a, 0x06a50, 0x06d40, 0x0af46, 0x0ab60, 0x09570,
+      0x04af5, 0x04970, 0x064b0, 0x074a3, 0x0ea50, 0x06b58, 0x055c0, 0x0ab60, 0x096d5, 0x092e0,
+      0x0c960, 0x0d954, 0x0d4a0, 0x0da50, 0x07552, 0x056a0, 0x0abb7, 0x025d0, 0x092d0, 0x0cab5,
+      0x0a950, 0x0b4a0, 0x0baa4, 0x0ad50, 0x055d9, 0x04ba0, 0x0a5b0, 0x15176, 0x052b0, 0x0a930,
+      0x07954, 0x06aa0, 0x0ad50, 0x05b52, 0x04b60, 0x0a6e6, 0x0a4e0, 0x0d260, 0x0ea65, 0x0d530,
+      0x05aa0, 0x076a3, 0x096d0, 0x04afb, 0x04ad0, 0x0a4d0, 0x1d0b6, 0x0d250, 0x0d520, 0x0dd45,
+      0x0b5a0, 0x056d0, 0x055b2, 0x049b0, 0x0a577, 0x0a4b0, 0x0aa50, 0x1b255, 0x06d20, 0x0ada0,
+      0x14b63, 0x09370, 0x049f8, 0x04970, 0x064b0, 0x168a6, 0x0ea50, 0x06b20, 0x1a6c4, 0x0aae0,
+      0x0a2e0, 0x0d2e3, 0x0c960, 0x0d557, 0x0d4a0, 0x0da50, 0x05d55, 0x056a0, 0x0a6d0, 0x055d4,
+      0x052d0, 0x0a9b8, 0x0a950, 0x0b4a0, 0x0b6a6, 0x0ad50, 0x055a0, 0x0aba4, 0x0a5b0, 0x052b0,
+      0x0b273, 0x06930, 0x07337, 0x06aa0, 0x0ad50, 0x14b55, 0x04b60, 0x0a570, 0x054e4, 0x0d160,
+      0x0e968, 0x0d520, 0x0daa0, 0x16aa6, 0x056d0, 0x04ae0, 0x0a9d4, 0x0a2d0, 0x0d150, 0x0f252,
+      0x0d520
+    ];
+
+    function getLeapMonth(year) {
+      return LUNAR_INFO_1900_2100[year - 1900] & 0xf;
+    }
+
+    function getLeapDays(year) {
+      if (getLeapMonth(year)) {
+        return (LUNAR_INFO_1900_2100[year - 1900] & 0x10000) ? 30 : 29;
+      }
+      return 0;
+    }
+
+    function getMonthDays(year, month) {
+      return (LUNAR_INFO_1900_2100[year - 1900] & (0x10000 >> month)) ? 30 : 29;
+    }
+
+    function getLunarYearDays(year) {
+      let sum = 348;
+      for (let i = 0x8000; i > 0x8; i >>= 1) {
+        sum += (LUNAR_INFO_1900_2100[year - 1900] & i) ? 1 : 0;
+      }
+      return sum + getLeapDays(year);
+    }
+
+    function solarToLunar(sYear, sMonth, sDay) {
+      const baseDate = Date.UTC(1900, 0, 31);
+      const objDate = Date.UTC(sYear, sMonth - 1, sDay);
+      let offset = Math.floor((objDate - baseDate) / 86400000);
+
+      let year = 1900;
+      let temp = 0;
+      for (year = 1900; year < 2101 && offset > 0; year++) {
+        temp = getLunarYearDays(year);
+        offset -= temp;
+      }
+      if (offset < 0) {
+        offset += temp;
+        year--;
+      }
+
+      const leap = getLeapMonth(year);
+      let isLeap = false;
+      let month = 1;
+      for (month = 1; month < 13 && offset > 0; month++) {
+        if (leap > 0 && month === (leap + 1) && !isLeap) {
+          --month;
+          isLeap = true;
+          temp = getLeapDays(year);
+        } else {
+          temp = getMonthDays(year, month);
+        }
+        if (isLeap && month === (leap + 1)) {
+          isLeap = false;
+        }
+        offset -= temp;
+      }
+
+      if (offset === 0 && leap > 0 && month === leap + 1) {
+        if (isLeap) {
+          isLeap = false;
+        } else {
+          isLeap = true;
+          --month;
+        }
+      }
+      if (offset < 0) {
+        offset += temp;
+        --month;
+      }
+      const day = offset + 1;
+      return { year, month, day, isLeap };
+    }
+
+    function lunarToSolar(lYear, lMonth, lDay, isLeap = false) {
+      let offset = 0;
+      for (let y = 1900; y < lYear; y++) {
+        offset += getLunarYearDays(y);
+      }
+      const leap = getLeapMonth(lYear);
+      for (let m = 1; m < lMonth; m++) {
+        offset += getMonthDays(lYear, m);
+        if (leap > 0 && m === leap) {
+          offset += getLeapDays(lYear);
+        }
+      }
+      if (isLeap && leap === lMonth) {
+        offset += getMonthDays(lYear, lMonth);
+      }
+      offset += lDay - 1;
+      const date = new Date(Date.UTC(1900, 0, 31) + offset * 86400000);
+      return {
+        year: date.getUTCFullYear(),
+        month: date.getUTCMonth() + 1,
+        day: date.getUTCDate()
+      };
+    }
+
+    /**
+     * 2. BẢNG DỮ LIỆU NGŨ HÀNH, 14 CHÍNH TINH & ~110 PHỤ TINH
+     */
+    const CAN = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'];
+    const CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
+    const MOD = (n, m) => ((n % m) + m) % m;
+
+    const ELEMENT_COLORS = {
+      Kim: '#B28B45',
+      Mộc: '#3D7954',
+      Thủy: '#263238',
+      Hỏa: '#C45D4B',
+      Thổ: '#A78B62'
+    };
+
+    const NAP_AM_60 = [
+      { name: 'Hải Trung Kim', element: 'Kim' }, { name: 'Hải Trung Kim', element: 'Kim' },
+      { name: 'Lư Trung Hỏa', element: 'Hỏa' }, { name: 'Lư Trung Hỏa', element: 'Hỏa' },
+      { name: 'Đại Lâm Mộc', element: 'Mộc' }, { name: 'Đại Lâm Mộc', element: 'Mộc' },
+      { name: 'Lộ Bàng Thổ', element: 'Thổ' }, { name: 'Lộ Bàng Thổ', element: 'Thổ' },
+      { name: 'Kiếm Phong Kim', element: 'Kim' }, { name: 'Kiếm Phong Kim', element: 'Kim' },
+      { name: 'Sơn Đầu Hỏa', element: 'Hỏa' }, { name: 'Sơn Đầu Hỏa', element: 'Hỏa' },
+      { name: 'Giản Hạ Thủy', element: 'Thủy' }, { name: 'Giản Hạ Thủy', element: 'Thủy' },
+      { name: 'Thành Đầu Thổ', element: 'Thổ' }, { name: 'Thành Đầu Thổ', element: 'Thổ' },
+      { name: 'Bạch Lạp Kim', element: 'Kim' }, { name: 'Bạch Lạp Kim', element: 'Kim' },
+      { name: 'Dương Liễu Mộc', element: 'Mộc' }, { name: 'Dương Liễu Mộc', element: 'Mộc' },
+      { name: 'Tuyền Trung Thủy', element: 'Thủy' }, { name: 'Tuyền Trung Thủy', element: 'Thủy' },
+      { name: 'Ốc Thượng Thổ', element: 'Thổ' }, { name: 'Ốc Thượng Thổ', element: 'Thổ' },
+      { name: 'Tích Lịch Hỏa', element: 'Hỏa' }, { name: 'Tích Lịch Hỏa', element: 'Hỏa' },
+      { name: 'Tùng Bách Mộc', element: 'Mộc' }, { name: 'Tùng Bách Mộc', element: 'Mộc' },
+      { name: 'Trường Lưu Thủy', element: 'Thủy' }, { name: 'Trường Lưu Thủy', element: 'Thủy' },
+      { name: 'Sa Trung Kim', element: 'Kim' }, { name: 'Sa Trung Kim', element: 'Kim' },
+      { name: 'Sơn Hạ Hỏa', element: 'Hỏa' }, { name: 'Sơn Hạ Hỏa', element: 'Hỏa' },
+      { name: 'Bình Địa Mộc', element: 'Mộc' }, { name: 'Bình Địa Mộc', element: 'Mộc' },
+      { name: 'Bích Thượng Thổ', element: 'Thổ' }, { name: 'Bích Thượng Thổ', element: 'Thổ' },
+      { name: 'Kim Bạch Kim', element: 'Kim' }, { name: 'Kim Bạch Kim', element: 'Kim' },
+      { name: 'Phú Đăng Hỏa', element: 'Hỏa' }, { name: 'Phú Đăng Hỏa', element: 'Hỏa' },
+      { name: 'Thiên Hà Thủy', element: 'Thủy' }, { name: 'Thiên Hà Thủy', element: 'Thủy' },
+      { name: 'Đại Trạch Thổ', element: 'Thổ' }, { name: 'Đại Trạch Thổ', element: 'Thổ' },
+      { name: 'Thoa Xuyến Kim', element: 'Kim' }, { name: 'Thoa Xuyến Kim', element: 'Kim' },
+      { name: 'Tang Đố Mộc', element: 'Mộc' }, { name: 'Tang Đố Mộc', element: 'Mộc' },
+      { name: 'Đại Khê Thủy', element: 'Thủy' }, { name: 'Đại Khê Thủy', element: 'Thủy' },
+      { name: 'Sa Trung Thổ', element: 'Thổ' }, { name: 'Sa Trung Thổ', element: 'Thổ' },
+      { name: 'Thiên Thượng Hỏa', element: 'Hỏa' }, { name: 'Thiên Thượng Hỏa', element: 'Hỏa' },
+      { name: 'Thạch Lựu Mộc', element: 'Mộc' }, { name: 'Thạch Lựu Mộc', element: 'Mộc' },
+      { name: 'Đại Hải Thủy', element: 'Thủy' }, { name: 'Đại Hải Thủy', element: 'Thủy' }
+    ];
+
+    const CHINH_TINH_DATA = {
+      'Tử Vi': {
+        element: 'Thổ', group: 'Bắc Đẩu',
+        summary: 'Tự trọng, lãnh đạo, quản lý, uy nghiêm và bao dung.',
+        favorable: 'Có năng lực tổ chức, dẫn dắt tập thể, giữ chữ tín và trọng danh dự.',
+        caution: 'Dễ bảo thủ, tự tôn cao, cần Tả Hữu hoặc Thiên Phủ/Tướng phò tá để tránh cô độc.',
+        brightness: ['B', 'Đ', 'M', 'B', 'V', 'M', 'M', 'Đ', 'V', 'B', 'V', 'B']
+      },
+      'Liêm Trinh': {
+        element: 'Hỏa', group: 'Bắc Đẩu',
+        summary: 'Kỷ luật, nguyên tắc, sắc sảo, giàu nhiệt huyết và tính chiến đấu.',
+        favorable: 'Thẳng thắn, làm việc có quy củ, hợp chính trị, quản trị, pháp lý hoặc nghệ thuật.',
+        caution: 'Nóng nảy, cố chấp, dễ vướng thị phi nguyên tắc nếu gặp Kình Đà, Hóa Kỵ.',
+        brightness: ['V', 'Đ', 'M', 'H', 'V', 'H', 'V', 'Đ', 'M', 'H', 'V', 'H']
+      },
+      'Thiên Đồng': {
+        element: 'Thủy', group: 'Bắc Đẩu',
+        summary: 'Hiền hòa, dễ gần, tâm hồn trẻ trung, giàu lòng trắc ẩn và nghệ thuật.',
+        favorable: 'Khả năng thích nghi tốt, nhân hậu, hợp giáo dục, dịch vụ, sáng tạo, tâm lý.',
+        caution: 'Dễ do dự, thiếu tính quyết liệt lúc đầu, cần trải qua rèn luyện để bứt phá.',
+        brightness: ['V', 'H', 'M', 'Đ', 'H', 'Đ', 'H', 'H', 'M', 'H', 'H', 'Đ']
+      },
+      'Vũ Khúc': {
+        element: 'Kim', group: 'Bắc Đẩu',
+        summary: 'Quyết đoán, thực tế, thẳng thắn, giỏi quản trị tài chính và hành động.',
+        favorable: 'Năng lực thực thi mạnh, độc lập, phù hợp tài chính, kinh doanh, kỹ thuật.',
+        caution: 'Khô khan trong giao tiếp tình cảm, dễ cô đơn nội tâm nếu thiếu cát tinh điều hòa.',
+        brightness: ['V', 'M', 'V', 'Đ', 'M', 'H', 'V', 'M', 'V', 'Đ', 'M', 'H']
+      },
+      'Thái Dương': {
+        element: 'Hỏa', group: 'Trung Thiên',
+        summary: 'Nhiệt tình, hào phóng, quang minh chính đại, thích cống hiến và lan tỏa.',
+        favorable: 'Tư duy rộng mở, uy tín xã hội cao, hợp ngoại giao, truyền thông, quản lý.',
+        caution: 'Dễ ôm đồm, hao tâm tổn sức vì người khác; vị trí Hãm cần tiết chế kỳ vọng.',
+        brightness: ['H', 'Đ', 'V', 'M', 'V', 'V', 'M', 'Đ', 'H', 'H', 'H', 'H']
+      },
+      'Thiên Cơ': {
+        element: 'Mộc', group: 'Nam Đẩu',
+        summary: 'Thông minh, mưu lược, nhạy bén, giỏi phân tích hệ thống và tham mưu.',
+        favorable: 'Tư duy logic sắc bén, học nhanh, hợp công nghệ, chiến lược, nghiên cứu.',
+        caution: 'Suy nghĩ nhiều, dễ lo âu hoặc thay đổi hướng đi liên tục nếu thiếu kiên định.',
+        brightness: ['Đ', 'Đ', 'V', 'M', 'M', 'B', 'M', 'H', 'V', 'M', 'Đ', 'H']
+      },
+      'Thiên Phủ': {
+        element: 'Thổ', group: 'Nam Đẩu',
+        summary: 'Quản lý, ổn định, thận trọng, giữ gìn thành quả và kho tàng.',
+        favorable: 'Vững vàng, đáng tin cậy, giỏi tích lũy nguồn lực và duy trì trật tự.',
+        caution: 'Thận trọng quá mức đôi khi bỏ lỡ cơ hội đột phá mới.',
+        brightness: ['M', 'M', 'M', 'B', 'V', 'Đ', 'V', 'Đ', 'M', 'B', 'V', 'Đ']
+      },
+      'Thái Âm': {
+        element: 'Thủy', group: 'Trung Thiên',
+        summary: 'Tinh tế, sâu sắc, giàu cảm xúc, trực giác tốt và khéo léo.',
+        favorable: 'Nhạy cảm với cái đẹp, giỏi hoạch định dài hạn, tích lũy tài sản bền vững.',
+        caution: 'Dễ suy tư, nhạy cảm quá mức trước biến động tâm lý hoặc gia đạo.',
+        brightness: ['M', 'Đ', 'H', 'H', 'H', 'H', 'H', 'Đ', 'V', 'M', 'M', 'M']
+      },
+      'Tham Lang': {
+        element: 'Thủy', group: 'Bắc Đẩu',
+        summary: 'Hoạt bát, đa tài, khéo giao tiếp, giàu khát vọng và khả năng thích nghi.',
+        favorable: 'Năng động, thu hút nhân duyên, giỏi kinh doanh, nghệ thuật, đối ngoại.',
+        caution: 'Dễ phân tán năng lượng vào nhiều mục tiêu cùng lúc, cần kỷ luật để thành tựu.',
+        brightness: ['V', 'M', 'Đ', 'H', 'M', 'H', 'V', 'M', 'Đ', 'H', 'M', 'H']
+      },
+      'Cự Môn': {
+        element: 'Thủy', group: 'Bắc Đẩu',
+        summary: 'Phân tích sâu, phản biện sắc sảo, thận trọng và giỏi ngôn ngữ.',
+        favorable: 'Nhìn thấu bản chất vấn đề, hợp luật sư, giảng dạy, nghiên cứu, tư vấn.',
+        caution: 'Dễ vướng thị phi lời nói, đa nghi nếu thiếu Hóa Lộc, Hóa Khoa hoặc Thái Dương.',
+        brightness: ['V', 'H', 'M', 'M', 'H', 'H', 'V', 'H', 'M', 'M', 'H', 'V']
+      },
+      'Thiên Tướng': {
+        element: 'Thủy', group: 'Nam Đẩu',
+        summary: 'Công bằng, chính trực, trọng lễ nghĩa, tận tâm hỗ trợ người khác.',
+        favorable: 'Khí chất đĩnh đạc, giỏi điều phối, hợp hành chính, quản trị nhân sự, đối ngoại.',
+        caution: 'Dễ chịu tác động bởi môi trường xung quanh (cách Giáp cung rất quan trọng).',
+        brightness: ['M', 'M', 'M', 'H', 'V', 'Đ', 'V', 'Đ', 'M', 'H', 'Đ', 'Đ']
+      },
+      'Thiên Lương': {
+        element: 'Mộc', group: 'Nam Đẩu',
+        summary: 'Trách nhiệm, bảo trợ, điềm đạm, nguyên tắc đạo đức và che chở.',
+        favorable: 'Chín chắn, giàu lòng vị tha, hợp y dược, giáo dục, cố vấn, công tác xã hội.',
+        caution: 'Dễ có xu hướng dạy bảo người khác hoặc tự gánh vác trách nhiệm nặng nề.',
+        brightness: ['V', 'Đ', 'M', 'M', 'V', 'H', 'M', 'Đ', 'V', 'H', 'Đ', 'H']
+      },
+      'Thất Sát': {
+        element: 'Kim', group: 'Nam Đẩu',
+        summary: 'Độc lập, quyết đoán, bản lĩnh tiên phong, dám nghĩ dám làm.',
+        favorable: 'Chịu áp lực cao, bứt phá mạnh trong môi trường cạnh tranh, tự thân lập nghiệp.',
+        caution: 'Thẳng tính, dễ cô độc hoặc thăng trầm lớn giai đoạn đầu đời.',
+        brightness: ['M', 'Đ', 'M', 'H', 'V', 'B', 'M', 'Đ', 'M', 'H', 'V', 'B']
+      },
+      'Phá Quân': {
+        element: 'Thủy', group: 'Bắc Đẩu',
+        summary: 'Đổi mới, cải cách, tiên phong phá vỡ lối mòn để kiến tạo cái mới.',
+        favorable: 'Sáng tạo đột phá, giỏi tái cấu trúc, khởi nghiệp hoặc lĩnh vực kỹ thuật mới.',
+        caution: 'Biến động mạnh, tiêu hao nguồn lực nhanh nếu thiếu kế hoạch quản trị rủi ro.',
+        brightness: ['M', 'V', 'H', 'H', 'Đ', 'H', 'M', 'Đ', 'H', 'H', 'Đ', 'H']
+      }
+    };
+
+    const PHU_TINH_DATA = {
+      'Tả Phù': { element: 'Thổ', type: 'cat', desc: 'Trợ lực, quý nhân, bạn đồng hành, mở rộng quy mô.' },
+      'Hữu Bật': { element: 'Thủy', type: 'cat', desc: 'Phò tá, khéo léo, hỗ trợ âm thầm nhưng đắc lực.' },
+      'Văn Xương': { element: 'Kim', type: 'cat', desc: 'Học vấn, văn chương, tư duy mạch lạc, bằng cấp.', brightness: ['Đ', 'M', 'H', 'Đ', 'Đ', 'M', 'H', 'Đ', 'Đ', 'M', 'H', 'H'] },
+      'Văn Khúc': { element: 'Thủy', type: 'cat', desc: 'Tài hoa, nghệ thuật, hùng biện, ứng biến linh hoạt.', brightness: ['M', 'M', 'Đ', 'V', 'M', 'M', 'H', 'V', 'Đ', 'M', 'H', 'H'] },
+      'Lộc Tồn': { element: 'Thổ', type: 'cat', desc: 'Tài lộc tự nhiên, tích lũy bền vững, giải ách.' },
+      'Thiên Khôi': { element: 'Hỏa', type: 'cat', desc: 'Quý nhân dương, cơ hội thăng tiến, người dẫn dắt.' },
+      'Thiên Việt': { element: 'Hỏa', type: 'cat', desc: 'Quý nhân âm, may mắn bất ngờ, sự giúp đỡ kịp thời.' },
+      'Thiên Mã': { element: 'Hỏa', type: 'cat', desc: 'Dịch chuyển, năng động, thay đổi môi trường, bôn ba.', brightness: ['H', 'H', 'Đ', 'H', 'H', 'Đ', 'H', 'H', 'Đ', 'H', 'H', 'Đ'] },
+      'Hóa Lộc': { element: 'Mộc', type: 'cat', desc: 'Tăng trưởng, tài lộc, nhân duyên thuận lợi.' },
+      'Hóa Quyền': { element: 'Mộc', type: 'cat', desc: 'Quyền lực, tự chủ, năng lực kiểm soát và quyết định.' },
+      'Hóa Khoa': { element: 'Mộc', type: 'cat', desc: 'Danh tiếng, học thuật, giải trừ tai ách và thị phi.' },
+      'Hóa Kỵ': { element: 'Thủy', type: 'sat', desc: 'Trở ngại, thị phi, áp lực tâm lý hoặc sự cố chấp.' },
+      'Kình Dương': { element: 'Kim', type: 'sat', desc: 'Cương cường, xung đột, quyết liệt, dễ va chạm.', brightness: ['H', 'Đ', 'H', 'H', 'Đ', 'H', 'H', 'Đ', 'H', 'H', 'Đ', 'H'] },
+      'Đà La': { element: 'Kim', type: 'sat', desc: 'Trì trệ, âm thầm cản trở, sâu sắc nhưng dễ vướng mắc.', brightness: ['H', 'Đ', 'H', 'H', 'Đ', 'H', 'H', 'Đ', 'H', 'H', 'Đ', 'H'] },
+      'Hỏa Tinh': { element: 'Hỏa', type: 'sat', desc: 'Bộc phát, nóng nảy, hành động nhanh, biến động bất ngờ.', brightness: ['H', 'Đ', 'M', 'Đ', 'H', 'Đ', 'M', 'Đ', 'H', 'Đ', 'M', 'Đ'] },
+      'Linh Tinh': { element: 'Hỏa', type: 'sat', desc: 'Nung nấu nội tâm, sắc bén, quyết liệt âm thầm.', brightness: ['H', 'Đ', 'M', 'Đ', 'H', 'Đ', 'M', 'Đ', 'H', 'Đ', 'M', 'Đ'] },
+      'Địa Không': { element: 'Hỏa', type: 'sat', desc: 'Tư duy đột phá phi truyền thống, nhưng dễ hao tán vật chất.', brightness: ['H', 'H', 'Đ', 'H', 'H', 'Đ', 'H', 'H', 'Đ', 'H', 'H', 'Đ'] },
+      'Địa Kiếp': { element: 'Hỏa', type: 'sat', desc: 'Biến cố bất ngờ, thử thách lớn, tôi luyện bản lĩnh.', brightness: ['H', 'H', 'Đ', 'H', 'H', 'Đ', 'H', 'H', 'Đ', 'H', 'H', 'Đ'] },
+      'Thiên Hình': { element: 'Hỏa', type: 'sat', desc: 'Kỷ luật thép, pháp luật, phẫu thuật, sự nghiêm khắc.', brightness: ['H', 'H', 'Đ', 'Đ', 'H', 'H', 'H', 'H', 'Đ', 'Đ', 'H', 'H'] },
+      'Thiên Riêu': { element: 'Thủy', type: 'sat', desc: 'Đa cảm, nghệ thuật, đào hoa, chiều sâu tâm linh.', brightness: ['H', 'H', 'Đ', 'Đ', 'H', 'H', 'H', 'H', 'Đ', 'Đ', 'H', 'H'] },
+      'Thiên Y': { element: 'Thủy', type: 'cat', desc: 'Y dược, chăm sóc sức khỏe, sự tinh khiết.' },
+      'Đào Hoa': { element: 'Mộc', type: 'cat', desc: 'Sức hút cá nhân, nghệ thuật, nhân duyên tình cảm.' },
+      'Hồng Loan': { element: 'Thủy', type: 'cat', desc: 'Hỷ tín, hôn nhân, duyên dáng, thẩm mỹ.' },
+      'Thiên Hỷ': { element: 'Thủy', type: 'cat', desc: 'Tin vui, lạc quan, không khí hòa hợp.' },
+      'Cô Thần': { element: 'Thổ', type: 'sat', desc: 'Độc lập, tự chủ nhưng dễ cảm thấy cô đơn nội tâm.' },
+      'Quả Tú': { element: 'Thổ', type: 'sat', desc: 'Khép kín, giữ gìn, ít chia sẻ chuyện riêng tư.' },
+      'Thiên Không': { element: 'Hỏa', type: 'sat', desc: 'Nhìn thấu hư vô, buông bỏ, tư duy triết lý.' },
+      'Kiếp Sát': { element: 'Hỏa', type: 'sat', desc: 'Áp lực, cạnh tranh gay gắt, cần thận trọng hành động.' },
+      'Bạch Hổ': { element: 'Kim', type: 'sat', desc: 'Nghị lực, thẳng thắn, dễ lo âu hoặc tổn hao huyết khí.', brightness: ['H', 'H', 'Đ', 'Đ', 'H', 'H', 'H', 'H', 'Đ', 'Đ', 'H', 'H'] },
+      'Tang Môn': { element: 'Mộc', type: 'sat', desc: 'Ưu tư, lo nghĩ xa, trăn trở trách nhiệm.', brightness: ['H', 'H', 'Đ', 'Đ', 'H', 'H', 'H', 'H', 'Đ', 'Đ', 'H', 'H'] },
+      'Điếu Khách': { element: 'Hỏa', type: 'sat', desc: 'Giao tế rộng, tiêu pha, lời nói dễ gây hiểu nhầm.' },
+      'Thái Tuế': { element: 'Hỏa', type: 'sat', desc: 'Chính danh, lý lẽ, nguyên tắc, bản lĩnh đối diện thực tế.' },
+      'Thiếu Dương': { element: 'Hỏa', type: 'cat', desc: 'Thông minh, sáng suốt, hòa nhã, giải trừ u ám.' },
+      'Thiếu Âm': { element: 'Thủy', type: 'cat', desc: 'Nhân hậu, nhường nhịn, âm thầm giúp người.' },
+      'Quan Phù': { element: 'Hỏa', type: 'sat', desc: 'Giấy tờ, thủ tục pháp lý, tranh luận lý lẽ.' },
+      'Tử Phù': { element: 'Kim', type: 'sat', desc: 'Trì trệ, áp lực công việc hoặc sức khỏe.' },
+      'Tuế Phá': { element: 'Hỏa', type: 'sat', desc: 'Phản biện, phá cách, dễ bất đồng quan điểm.' },
+      'Long Đức': { element: 'Thủy', type: 'cat', desc: 'Đức hạnh, hóa giải hung hiểm, được nể trọng.' },
+      'Phúc Đức': { element: 'Thổ', type: 'cat', desc: 'Phúc lành, thiện tâm, gặp dữ hóa lành.' },
+      'Trực Phù': { element: 'Hỏa', type: 'sat', desc: 'Thẳng thắn, dễ vướng bận thủ tục hoặc lo âu.' },
+      'Bác Sĩ': { element: 'Thủy', type: 'cat', desc: 'Thông tuệ, hiểu biết sâu rộng, giải tai ách.' },
+      'Lực Sĩ': { element: 'Hỏa', type: 'cat', desc: 'Sức mạnh, năng lực thực thi, uy quyền.' },
+      'Thanh Long': { element: 'Thủy', type: 'cat', desc: 'Tin vui, hanh thông, thăng tiến, cơ hội mới.' },
+      'Tiểu Hao': { element: 'Hỏa', type: 'sat', desc: 'Chi tiêu lặt vặt, linh hoạt dòng tiền.', brightness: ['H', 'H', 'Đ', 'Đ', 'H', 'H', 'H', 'H', 'Đ', 'Đ', 'H', 'H'] },
+      'Tướng Quân': { element: 'Mộc', type: 'cat', desc: 'Oai phong, quyết đoán, tinh thần dẫn đầu.' },
+      'Tấu Thư': { element: 'Kim', type: 'cat', desc: 'Văn thư, giấy tờ, khiếu ăn nói và viết lách.' },
+      'Phi Liêm': { element: 'Hỏa', type: 'sat', desc: 'Nhanh nhẹn, bất ngờ, dễ gặp lời đồn thổi.' },
+      'Hỷ Thần': { element: 'Hỏa', type: 'cat', desc: 'Niềm vui, sự phấn chấn, may mắn.' },
+      'Bệnh Phù': { element: 'Thổ', type: 'sat', desc: 'Suy giảm thể lực, cần chú ý dưỡng sinh.' },
+      'Đại Hao': { element: 'Hỏa', type: 'sat', desc: 'Biến động tài chính lớn, đầu tư hoặc dịch chuyển mạnh.', brightness: ['H', 'H', 'Đ', 'Đ', 'H', 'H', 'H', 'H', 'Đ', 'Đ', 'H', 'H'] },
+      'Phục Binh': { element: 'Hỏa', type: 'sat', desc: 'Sự việc ngầm, cạnh tranh ẩn giấu, cần đề phòng.' },
+      'Quan Phủ': { element: 'Hỏa', type: 'sat', desc: 'Công vụ, giấy tờ hành chính, quy định.' },
+      'Long Trì': { element: 'Thủy', type: 'cat', desc: 'Thanh cao, điền sản, năng khiếu nghệ thuật.' },
+      'Phượng Các': { element: 'Thổ', type: 'cat', desc: 'Quý phái, thẩm mỹ, tin vui và danh tiếng.' },
+      'Giải Thần': { element: 'Mộc', type: 'cat', desc: 'Hóa giải mâu thuẫn, giảm nhẹ rủi ro.' },
+      'Thiên Khốc': { element: 'Kim', type: 'sat', desc: 'Lo âu, trăn trở, tiếng nói có sức nặng sau gian khó.', brightness: ['Đ', 'Đ', 'H', 'Đ', 'H', 'H', 'Đ', 'Đ', 'H', 'Đ', 'H', 'H'] },
+      'Thiên Hư': { element: 'Thủy', type: 'sat', desc: 'Hao tổn tâm lực, nhạy cảm với biến động.', brightness: ['Đ', 'Đ', 'H', 'Đ', 'H', 'H', 'Đ', 'Đ', 'H', 'Đ', 'H', 'H'] },
+      'Thiên Đức': { element: 'Hỏa', type: 'cat', desc: 'Đức độ, che chở, giảm hung tăng cát.' },
+      'Nguyệt Đức': { element: 'Hỏa', type: 'cat', desc: 'Hiền hòa, nhân ái, hóa giải bất hòa.' },
+      'Ân Quang': { element: 'Mộc', type: 'cat', desc: 'Ân huệ, được người nâng đỡ, trọng tình nghĩa.' },
+      'Thiên Quý': { element: 'Thổ', type: 'cat', desc: 'Quý hiển, lòng biết ơn, gặp quý nhân.' },
+      'Tam Thai': { element: 'Thổ', type: 'cat', desc: 'Bệ vệ, vị thế vững vàng, thăng tiến từng bước.' },
+      'Bát Tọa': { element: 'Mộc', type: 'cat', desc: 'An định, phong thái đĩnh đạc, được tôn trọng.' },
+      'Thai Phụ': { element: 'Kim', type: 'cat', desc: 'Vinh dự, bằng cấp, khen thưởng.' },
+      'Phong Cáo': { element: 'Thổ', type: 'cat', desc: 'Chức danh, sự công nhận năng lực.' },
+      'Thiên Quan': { element: 'Hỏa', type: 'cat', desc: 'May mắn trong công danh, được cấp trên tin cậy.' },
+      'Thiên Phúc': { element: 'Thổ', type: 'cat', desc: 'Phúc đức, thiện lương, cuộc sống an lành.' },
+      'Thiên Trù': { element: 'Thổ', type: 'cat', desc: 'Lộc ăn uống, ẩm thực, đời sống sung túc.' },
+      'Văn Tinh': { element: 'Hỏa', type: 'cat', desc: 'Thông minh, học thuật, sáng tạo.' },
+      'Đường Phù': { element: 'Mộc', type: 'cat', desc: 'Nhà cửa, trụ sở, sự ổn định nơi ở.' },
+      'Quốc Ấn': { element: 'Thổ', type: 'cat', desc: 'Ấn tín, quyền hạn quản lý, giấy tờ quan trọng.' },
+      'Thiên Giải': { element: 'Hỏa', type: 'cat', desc: 'Giải trừ tai ách, hóa nguy thành an.' },
+      'Địa Giải': { element: 'Thổ', type: 'cat', desc: 'Tháo gỡ bế tắc, chuyển biến tích cực.' },
+      'Hoa Cái': { element: 'Kim', type: 'cat', desc: 'Sang trọng, thẩm mỹ, có duyên với huyền học.' },
+      'Thiên La': { element: 'Thổ', type: 'sat', desc: 'Ràng buộc hoàn cảnh, cần kiên nhẫn vượt qua.' },
+      'Địa Võng': { element: 'Thổ', type: 'sat', desc: 'Thử thách môi trường, cần giữ sự tỉnh táo.' },
+      'Thiên Thương': { element: 'Thổ', type: 'sat', desc: 'Hao tổn tâm sức vì nhân sự, bạn bè.' },
+      'Thiên Sứ': { element: 'Thủy', type: 'sat', desc: 'Thử thách sức khỏe, cần điều độ sinh hoạt.' },
+      'Thiên Tài': { element: 'Thổ', type: 'cat', desc: 'Năng lực bẩm sinh, tài năng tự thân.' },
+      'Thiên Thọ': { element: 'Thổ', type: 'cat', desc: 'Sự bền bỉ, điềm đạm, trường thọ.' },
+      'Đẩu Quân': { element: 'Hỏa', type: 'sat', desc: 'Nghiêm khắc, chặt chẽ trong chi tiêu và nguyên tắc.' },
+      'Phá Toái': { element: 'Hỏa', type: 'sat', desc: 'Dễ gián đoạn kế hoạch, cần sự bền bỉ.' },
+      'Lưu Hà': { element: 'Thủy', type: 'sat', desc: 'Lưu thông, ăn nói lưu loát nhưng cần cẩn trọng sông nước.' }
+    };
+
+    const PALACE_DESCRIPTIONS = {
+      'MỆNH': { title: 'Cung Mệnh', focus: 'Tính cách, tư duy cốt lõi, năng lực bẩm sinh và xu hướng cuộc đời.', theme: 'Bản thân & Phát triển' },
+      'PHỤ MẪU': { title: 'Cung Phụ Mẫu', focus: 'Mối quan hệ với cha mẹ, người bề trên, cấp trên và nền tảng gia giáo.', theme: 'Gia đình & Quý nhân' },
+      'PHÚC ĐỨC': { title: 'Cung Phúc Đức', focus: 'Đời sống tinh thần, phúc phần dòng họ, sự an yên nội tâm và hậu vận.', theme: 'Tinh thần & Phúc phần' },
+      'ĐIỀN TRẠCH': { title: 'Cung Điền Trạch', focus: 'Nhà cửa, bất động sản, môi trường sống, nơi làm việc và tài sản tích lũy.', theme: 'Tài sản & An cư' },
+      'QUAN LỘC': { title: 'Cung Quan Lộc', focus: 'Sự nghiệp, định hướng nghề nghiệp, phương thức làm việc và vị thế xã hội.', theme: 'Sự nghiệp & Công danh' },
+      'NÔ BỘC': { title: 'Cung Nô Bộc', focus: 'Bạn bè, đồng nghiệp, cộng sự, khách hàng và mạng lưới quan hệ xã hội.', theme: 'Bạn bè & Cộng sự' },
+      'THIÊN DI': { title: 'Cung Thiên Di', focus: 'Môi trường bên ngoài, xuất hành, đi xa, cơ hội hội nhập và cách xã hội nhìn nhận.', theme: 'Xã hội & Xuất hành' },
+      'TẬT ÁCH': { title: 'Cung Tật Ách', focus: 'Thể trạng sức khỏe, điểm cần dưỡng sinh giữ gìn và khả năng vượt qua thử thách.', theme: 'Sức khỏe & Dưỡng sinh' },
+      'TÀI BẠCH': { title: 'Cung Tài Bạch', focus: 'Tư duy tài chính, nguồn thu nhập, khả năng quản lý và luân chuyển tiền bạc.', theme: 'Tài chính & Tài lộc' },
+      'TỬ TỨC': { title: 'Cung Tử Tức', focus: 'Con cái, thế hệ kế cận, học trò và các dự án sáng tạo tâm huyết.', theme: 'Con cái & Kế thừa' },
+      'PHU THÊ': { title: 'Cung Phu Thê', focus: 'Tình duyên, đời sống hôn nhân, mẫu hình người bạn đời và cách ứng xử lứa đôi.', theme: 'Tình duyên & Hôn nhân' },
+      'HUYNH ĐỆ': { title: 'Cung Huynh Đệ', focus: 'Anh chị em ruột thịt, bạn bè thân thiết ngang hàng và sự tương trợ đồng trang lứa.', theme: 'Anh em & Đồng trang lứa' }
+    };
+
+    /**
+     * 3. THUẬT TOÁN LẬP LÁ SỐ TỬ VI TOÀN DIỆN
+     */
+    function getSexagenaryIndex(canIdx, chiIdx) {
+      for (let i = 0; i < 60; i++) {
+        if (i % 10 === canIdx && i % 12 === chiIdx) return i;
+      }
+      return 0;
+    }
+
+    function getJulianDayNumber(y, m, d) {
+      const a = Math.floor((14 - m) / 12);
+      const y1 = y + 4800 - a;
+      const m1 = m + 12 * a - 3;
+      return d + Math.floor((153 * m1 + 2) / 5) + 365 * y1 + Math.floor(y1 / 4) - Math.floor(y1 / 100) + Math.floor(y1 / 400) - 32045;
+    }
+
+    function calculateTuViChart(input) {
+      let sYear = Number(input.year);
+      let sMonth = Number(input.month);
+      let sDay = Number(input.day);
+      let lunarDate;
+
+      if (input.calendarType === 'lunar') {
+        lunarDate = { year: sYear, month: sMonth, day: sDay, isLeap: Boolean(input.isLeap) };
+        const solar = lunarToSolar(sYear, sMonth, sDay, Boolean(input.isLeap));
+        sYear = solar.year;
+        sMonth = solar.month;
+        sDay = solar.day;
+      } else {
+        lunarDate = solarToLunar(sYear, sMonth, sDay);
+      }
+
+      const hour = Number(input.hour);
+      let chiHourIdx = Math.floor(((hour + 1) % 24) / 2);
+      let dayOffsetForLateZi = 0;
+      if (hour === 23 && input.lateZiRule === 'nextDay') {
+        dayOffsetForLateZi = 1;
+      }
+
+      const yearCanIdx = MOD(lunarDate.year - 4, 10);
+      const yearChiIdx = MOD(lunarDate.year - 4, 12);
+      const yearCan = CAN[yearCanIdx];
+      const yearChi = CHI[yearChiIdx];
+
+      const monthStartCanIdx = MOD((yearCanIdx % 5) * 2 + 2, 10);
+      const monthCanIdx = MOD(monthStartCanIdx + (lunarDate.month - 1), 10);
+      const monthChiIdx = MOD(2 + (lunarDate.month - 1), 12);
+      const monthCan = CAN[monthCanIdx];
+      const monthChi = CHI[monthChiIdx];
+
+      const jdn = getJulianDayNumber(sYear, sMonth, sDay) + dayOffsetForLateZi;
+      const dayCanIdx = MOD(jdn + 9, 10);
+      const dayChiIdx = MOD(jdn + 1, 12);
+      const dayCan = CAN[dayCanIdx];
+      const dayChi = CHI[dayChiIdx];
+
+      const hourStartCanIdx = MOD((dayCanIdx % 5) * 2, 10);
+      const hourCanIdx = MOD(hourStartCanIdx + chiHourIdx, 10);
+      const hourCan = CAN[hourCanIdx];
+
+      const sexagenaryIdx = getSexagenaryIndex(yearCanIdx, yearChiIdx);
+      const napAm = NAP_AM_60[sexagenaryIdx];
+
+      const isYangYear = yearCanIdx % 2 === 0;
+      const isMale = input.gender === 'Nam';
+      const amDuong = `${isYangYear ? 'Dương' : 'Âm'} ${isMale ? 'Nam' : 'Nữ'}`;
+      const isThuan = (isYangYear && isMale) || (!isYangYear && !isMale);
+      const thuanNghich = isThuan ? 'Âm Dương thuận lý' : 'Âm Dương nghịch lý';
+
+      const effectiveLunarMonth = (lunarDate.isLeap && input.leapMonthRule === 'nextMonth')
+        ? (lunarDate.month % 12) + 1
+        : lunarDate.month;
+      const menhPos = MOD(2 + (effectiveLunarMonth - 1) - chiHourIdx, 12);
+      const thanPos = MOD(2 + (effectiveLunarMonth - 1) + chiHourIdx, 12);
+
+      const CUC_START_CAN = [2, 4, 6, 8, 0];
+      const menhCanIdx = MOD(CUC_START_CAN[yearCanIdx % 5] + MOD(menhPos - 2, 12), 10);
+      const CUC_TABLE = [
+        [4, 2, 6, 5, 3],
+        [2, 6, 5, 3, 4],
+        [6, 5, 3, 4, 2],
+        [5, 3, 4, 2, 6],
+        [3, 4, 2, 6, 5]
+      ];
+      const chiPairGroup = Math.floor(MOD(menhPos, 6) / 2);
+      const cucNumber = CUC_TABLE[Math.floor(menhCanIdx / 2)][chiPairGroup];
+      const CUC_DETAILS = {
+        2: { name: 'Thủy Nhị Cục', element: 'Thủy', startAge: 2, trangSinhStart: 8 },
+        3: { name: 'Mộc Tam Cục', element: 'Mộc', startAge: 3, trangSinhStart: 11 },
+        4: { name: 'Kim Tứ Cục', element: 'Kim', startAge: 4, trangSinhStart: 5 },
+        5: { name: 'Thổ Ngũ Cục', element: 'Thổ', startAge: 5, trangSinhStart: 8 },
+        6: { name: 'Hỏa Lục Cục', element: 'Hỏa', startAge: 6, trangSinhStart: 2 }
+      };
+      const cucInfo = CUC_DETAILS[cucNumber];
+
+      const ELEMENT_GEN = { Kim: 'Thủy', Thủy: 'Mộc', Mộc: 'Hỏa', Hỏa: 'Thổ', Thổ: 'Kim' };
+      const ELEMENT_OVERCOME = { Kim: 'Mộc', Mộc: 'Thổ', Thổ: 'Thủy', Thủy: 'Hỏa', Hỏa: 'Kim' };
+      let menhCucRelation = 'Mệnh Cục bình hòa';
+      if (napAm.element === cucInfo.element) menhCucRelation = 'Mệnh Cục đồng hành';
+      else if (ELEMENT_GEN[cucInfo.element] === napAm.element) menhCucRelation = 'Cục sinh Bản Mệnh';
+      else if (ELEMENT_GEN[napAm.element] === cucInfo.element) menhCucRelation = 'Bản Mệnh sinh Cục';
+      else if (ELEMENT_OVERCOME[cucInfo.element] === napAm.element) menhCucRelation = 'Cục khắc Bản Mệnh';
+      else if (ELEMENT_OVERCOME[napAm.element] === cucInfo.element) menhCucRelation = 'Bản Mệnh khắc Cục';
+
+      const MENH_CHU_BY_CHI = ['Tham Lang', 'Cự Môn', 'Lộc Tồn', 'Văn Khúc', 'Liêm Trinh', 'Vũ Khúc', 'Phá Quân', 'Vũ Khúc', 'Liêm Trinh', 'Văn Khúc', 'Lộc Tồn', 'Cự Môn'];
+      const THAN_CHU_BY_CHI = ['Linh Tinh', 'Thiên Tướng', 'Thiên Lương', 'Thiên Đồng', 'Văn Xương', 'Thiên Cơ', 'Hỏa Tinh', 'Thiên Tướng', 'Thiên Lương', 'Thiên Đồng', 'Văn Xương', 'Thiên Cơ'];
+      const menhChu = MENH_CHU_BY_CHI[menhPos];
+      const thanChu = THAN_CHU_BY_CHI[yearChiIdx];
+
+      const PALACE_NAMES = ['MỆNH', 'PHỤ MẪU', 'PHÚC ĐỨC', 'ĐIỀN TRẠCH', 'QUAN LỘC', 'NÔ BỘC', 'THIÊN DI', 'TẬT ÁCH', 'TÀI BẠCH', 'TỬ TỨC', 'PHU THÊ', 'HUYNH ĐỆ'];
+      const TRANG_SINH_NAMES = ['Tràng Sinh', 'Mộc Dục', 'Quan Đới', 'Lâm Quan', 'Đế Vượng', 'Suy', 'Bệnh', 'Tử', 'Mộ', 'Tuyệt', 'Thai', 'Dưỡng'];
+
+      const palaces = Array.from({ length: 12 }, (_, chiIdx) => {
+        const palaceOffset = MOD(chiIdx - menhPos, 12);
+        const palaceCanIdx = MOD(CUC_START_CAN[yearCanIdx % 5] + MOD(chiIdx - 2, 12), 10);
+        const daiHanStep = isThuan ? palaceOffset : MOD(menhPos - chiIdx, 12);
+        const daiHanStart = cucInfo.startAge + daiHanStep * 10;
+        const trangSinhOffset = isThuan
+          ? MOD(chiIdx - cucInfo.trangSinhStart, 12)
+          : MOD(cucInfo.trangSinhStart - chiIdx, 12);
+
+        return {
+          chiIdx,
+          chiName: CHI[chiIdx],
+          canName: CAN[palaceCanIdx],
+          canChiLabel: `${CAN[palaceCanIdx][0]}.${CHI[chiIdx]}`,
+          name: PALACE_NAMES[palaceOffset],
+          isMenh: chiIdx === menhPos,
+          isThan: chiIdx === thanPos,
+          daiHanStart,
+          daiHanEnd: daiHanStart + 9,
+          trangSinh: TRANG_SINH_NAMES[trangSinhOffset],
+          chinhTinh: [],
+          phuTinh: [],
+          hasTuan: false,
+          hasTriet: false
+        };
+      });
+
+      const thanCuPalaceName = palaces[thanPos].name;
+
+      // An 14 Chính Tinh
+      const day = lunarDate.day;
+      let tuViPos = 0;
+      if (day % cucNumber === 0) {
+        tuViPos = MOD(2 + (day / cucNumber) - 1, 12);
+      } else {
+        const q = Math.floor(day / cucNumber) + 1;
+        const diff = q * cucNumber - day;
+        const base = 2 + q - 1;
+        tuViPos = diff % 2 === 1 ? MOD(base - diff, 12) : MOD(base + diff, 12);
+      }
+      const thienPhuPos = MOD(4 - tuViPos, 12);
+
+      const CHINH_TINH_POS = {
+        'Tử Vi': tuViPos,
+        'Thiên Cơ': MOD(tuViPos - 1, 12),
+        'Thái Dương': MOD(tuViPos - 3, 12),
+        'Vũ Khúc': MOD(tuViPos - 4, 12),
+        'Thiên Đồng': MOD(tuViPos - 5, 12),
+        'Liêm Trinh': MOD(tuViPos - 8, 12),
+        'Thiên Phủ': thienPhuPos,
+        'Thái Âm': MOD(thienPhuPos + 1, 12),
+        'Tham Lang': MOD(thienPhuPos + 2, 12),
+        'Cự Môn': MOD(thienPhuPos + 3, 12),
+        'Thiên Tướng': MOD(thienPhuPos + 4, 12),
+        'Thiên Lương': MOD(thienPhuPos + 5, 12),
+        'Thất Sát': MOD(thienPhuPos + 6, 12),
+        'Phá Quân': MOD(thienPhuPos + 10, 12)
+      };
+
+      const TU_HOA_BY_CAN = [
+        ['Liêm Trinh', 'Phá Quân', 'Vũ Khúc', 'Thái Dương'],
+        ['Thiên Cơ', 'Thiên Lương', 'Tử Vi', 'Thái Âm'],
+        ['Thiên Đồng', 'Thiên Cơ', 'Văn Xương', 'Liêm Trinh'],
+        ['Thái Âm', 'Thiên Đồng', 'Thiên Cơ', 'Cự Môn'],
+        ['Tham Lang', 'Thái Âm', 'Hữu Bật', 'Thiên Cơ'],
+        ['Vũ Khúc', 'Tham Lang', 'Thiên Lương', 'Văn Khúc'],
+        ['Thái Dương', 'Vũ Khúc', 'Thái Âm', 'Thiên Đồng'],
+        ['Cự Môn', 'Thái Dương', 'Văn Khúc', 'Văn Xương'],
+        ['Thiên Lương', 'Tử Vi', 'Tả Phù', 'Vũ Khúc'],
+        ['Phá Quân', 'Cự Môn', 'Thái Âm', 'Tham Lang']
+      ];
+      const hoaStars = TU_HOA_BY_CAN[yearCanIdx];
+      const HOA_LABELS = ['Hóa Lộc', 'Hóa Quyền', 'Hóa Khoa', 'Hóa Kỵ'];
+      const tuHoaList = [];
+
+      Object.entries(CHINH_TINH_POS).forEach(([starName, pos]) => {
+        const info = CHINH_TINH_DATA[starName];
+        const hoaIdx = hoaStars.indexOf(starName);
+        const tuHoa = hoaIdx !== -1 ? HOA_LABELS[hoaIdx] : null;
+        if (tuHoa) {
+          tuHoaList.push({ hoa: tuHoa, star: starName, palace: palaces[pos].name, chiName: CHI[pos] });
+        }
+        palaces[pos].chinhTinh.push({
+          name: starName,
+          element: info.element,
+          brightness: info.brightness[pos],
+          tuHoa
+        });
+      });
+
+      const addPhuTinh = (name, pos) => {
+        const pIdx = MOD(pos, 12);
+        const meta = PHU_TINH_DATA[name] || { element: 'Thổ', type: 'cat' };
+        const brightness = meta.brightness ? meta.brightness[pIdx] : null;
+        palaces[pIdx].phuTinh.push({
+          name,
+          element: meta.element,
+          type: meta.type,
+          brightness
+        });
+        const hoaIdx = hoaStars.indexOf(name);
+        if (hoaIdx !== -1) {
+          const tuHoa = HOA_LABELS[hoaIdx];
+          palaces[pIdx].phuTinh.push({
+            name: tuHoa,
+            element: tuHoa === 'Hóa Kỵ' ? 'Thủy' : 'Mộc',
+            type: tuHoa === 'Hóa Kỵ' ? 'sat' : 'cat'
+          });
+          tuHoaList.push({ hoa: tuHoa, star: name, palace: palaces[pIdx].name, chiName: CHI[pIdx] });
+        }
+      };
+
+      const THAI_TUE_RING = [
+        'Thái Tuế', 'Thiếu Dương', 'Tang Môn', 'Thiếu Âm', 'Quan Phù', 'Tử Phù',
+        'Tuế Phá', 'Long Đức', 'Bạch Hổ', 'Phúc Đức', 'Điếu Khách', 'Trực Phù'
+      ];
+      THAI_TUE_RING.forEach((star, i) => addPhuTinh(star, yearChiIdx + i));
+
+      const LOC_TON_POS = [2, 3, 5, 6, 5, 6, 8, 9, 11, 0];
+      const locTonPos = LOC_TON_POS[yearCanIdx];
+      addPhuTinh('Lộc Tồn', locTonPos);
+      addPhuTinh('Kình Dương', locTonPos + 1);
+      addPhuTinh('Đà La', locTonPos - 1);
+
+      const BAC_SI_RING = [
+        'Bác Sĩ', 'Lực Sĩ', 'Thanh Long', 'Tiểu Hao', 'Tướng Quân', 'Tấu Thư',
+        'Phi Liêm', 'Hỷ Thần', 'Bệnh Phù', 'Đại Hao', 'Phục Binh', 'Quan Phủ'
+      ];
+      BAC_SI_RING.forEach((star, i) => {
+        addPhuTinh(star, isThuan ? locTonPos + i : locTonPos - i);
+      });
+
+      const taPhuPos = MOD(4 + (effectiveLunarMonth - 1), 12);
+      const huuBatPos = MOD(10 - (effectiveLunarMonth - 1), 12);
+      const vanXuongPos = MOD(10 - chiHourIdx, 12);
+      const vanKhucPos = MOD(4 + chiHourIdx, 12);
+      addPhuTinh('Tả Phù', taPhuPos);
+      addPhuTinh('Hữu Bật', huuBatPos);
+      addPhuTinh('Văn Xương', vanXuongPos);
+      addPhuTinh('Văn Khúc', vanKhucPos);
+
+      addPhuTinh('Ân Quang', vanXuongPos + lunarDate.day - 2);
+      addPhuTinh('Thiên Quý', vanKhucPos - lunarDate.day + 2);
+      addPhuTinh('Tam Thai', taPhuPos + lunarDate.day - 1);
+      addPhuTinh('Bát Tọa', huuBatPos - lunarDate.day + 1);
+      addPhuTinh('Thai Phụ', vanKhucPos + 2);
+      addPhuTinh('Phong Cáo', vanKhucPos - 2);
+
+      const KHOI_VIET_MAP = [
+        [1, 7], [0, 8], [11, 9], [11, 9], [1, 7],
+        [0, 8], [1, 7], [6, 2], [3, 5], [3, 5]
+      ];
+      addPhuTinh('Thiên Khôi', KHOI_VIET_MAP[yearCanIdx][0]);
+      addPhuTinh('Thiên Việt', KHOI_VIET_MAP[yearCanIdx][1]);
+
+      const QUAN_PHUC_MAP = [
+        [7, 9], [4, 8], [5, 0], [2, 11], [3, 3],
+        [9, 2], [11, 6], [9, 5], [10, 6], [6, 5]
+      ];
+      addPhuTinh('Thiên Quan', QUAN_PHUC_MAP[yearCanIdx][0]);
+      addPhuTinh('Thiên Phúc', QUAN_PHUC_MAP[yearCanIdx][1]);
+
+      const VAN_TINH_MAP = [5, 6, 8, 9, 8, 9, 11, 0, 2, 3];
+      const LUU_HA_MAP = [9, 10, 7, 8, 5, 6, 3, 4, 11, 2];
+      const THIEN_TRU_MAP = [5, 6, 0, 5, 6, 8, 2, 6, 9, 10];
+      addPhuTinh('Văn Tinh', VAN_TINH_MAP[yearCanIdx]);
+      addPhuTinh('Đường Phù', locTonPos + 5);
+      addPhuTinh('Quốc Ấn', locTonPos + 8);
+      addPhuTinh('Thiên Trù', THIEN_TRU_MAP[yearCanIdx]);
+      addPhuTinh('Lưu Hà', LUU_HA_MAP[yearCanIdx]);
+
+      addPhuTinh('Long Trì', 4 + yearChiIdx);
+      addPhuTinh('Phượng Các', 10 - yearChiIdx);
+      addPhuTinh('Giải Thần', 10 - yearChiIdx);
+      addPhuTinh('Thiên Khốc', 6 - yearChiIdx);
+      addPhuTinh('Thiên Hư', 6 + yearChiIdx);
+      addPhuTinh('Thiên Đức', 9 + yearChiIdx);
+      addPhuTinh('Nguyệt Đức', 5 + yearChiIdx);
+      addPhuTinh('Hồng Loan', 3 - yearChiIdx);
+      addPhuTinh('Thiên Hỷ', 9 - yearChiIdx);
+
+      addPhuTinh('Thiên Hình', 9 + (effectiveLunarMonth - 1));
+      addPhuTinh('Thiên Riêu', 1 + (effectiveLunarMonth - 1));
+      addPhuTinh('Thiên Y', 1 + (effectiveLunarMonth - 1));
+      addPhuTinh('Thiên Giải', 8 + (effectiveLunarMonth - 1));
+      addPhuTinh('Địa Giải', 7 + (effectiveLunarMonth - 1));
+
+      const TAM_HOP_STARS = {
+        2: { ma: 8, dao: 3, cai: 10, kiep: 11 }, 6: { ma: 8, dao: 3, cai: 10, kiep: 11 }, 10: { ma: 8, dao: 3, cai: 10, kiep: 11 },
+        8: { ma: 2, dao: 9, cai: 4, kiep: 5 }, 0: { ma: 2, dao: 9, cai: 4, kiep: 5 }, 4: { ma: 2, dao: 9, cai: 4, kiep: 5 },
+        5: { ma: 11, dao: 6, cai: 1, kiep: 2 }, 9: { ma: 11, dao: 6, cai: 1, kiep: 2 }, 1: { ma: 11, dao: 6, cai: 1, kiep: 2 },
+        11: { ma: 5, dao: 0, cai: 7, kiep: 8 }, 3: { ma: 5, dao: 0, cai: 7, kiep: 8 }, 7: { ma: 5, dao: 0, cai: 7, kiep: 8 }
+      };
+      const thStars = TAM_HOP_STARS[yearChiIdx];
+      addPhuTinh('Thiên Mã', thStars.ma);
+      addPhuTinh('Đào Hoa', thStars.dao);
+      addPhuTinh('Hoa Cái', thStars.cai);
+      addPhuTinh('Kiếp Sát', thStars.kiep);
+
+      addPhuTinh('Địa Không', 11 - chiHourIdx);
+      addPhuTinh('Địa Kiếp', 11 + chiHourIdx);
+      const HOA_LINH_START = {
+        2: [1, 3], 6: [1, 3], 10: [1, 3],
+        8: [2, 10], 0: [2, 10], 4: [2, 10],
+        5: [3, 10], 9: [3, 10], 1: [3, 10],
+        11: [9, 10], 3: [9, 10], 7: [9, 10]
+      };
+      const [hoaStart, linhStart] = HOA_LINH_START[yearChiIdx];
+      addPhuTinh('Hỏa Tinh', hoaStart + chiHourIdx);
+      addPhuTinh('Linh Tinh', linhStart + chiHourIdx);
+
+      const CO_QUA_MAP = [
+        [2, 10], [2, 10], [5, 1], [5, 1], [5, 1], [8, 4],
+        [8, 4], [8, 4], [11, 7], [11, 7], [11, 7], [2, 10]
+      ];
+      addPhuTinh('Cô Thần', CO_QUA_MAP[yearChiIdx][0]);
+      addPhuTinh('Quả Tú', CO_QUA_MAP[yearChiIdx][1]);
+      const PHA_TOAI_MAP = [5, 1, 9, 5, 1, 9, 5, 1, 9, 5, 1, 9];
+      addPhuTinh('Phá Toái', PHA_TOAI_MAP[yearChiIdx]);
+      addPhuTinh('Thiên La', 4);
+      addPhuTinh('Địa Võng', 10);
+      addPhuTinh('Thiên Thương', menhPos + 5);
+      addPhuTinh('Thiên Sứ', menhPos + 7);
+      addPhuTinh('Thiên Tài', menhPos + yearChiIdx);
+      addPhuTinh('Thiên Thọ', thanPos + yearChiIdx);
+      addPhuTinh('Đẩu Quân', yearChiIdx - (lunarDate.month - 1) + chiHourIdx);
+
+      const giapChiOfWeek = MOD(yearChiIdx - yearCanIdx, 12);
+      const tuanPair = [MOD(giapChiOfWeek - 2, 12), MOD(giapChiOfWeek - 1, 12)];
+      const TRIET_MAP = [
+        [8, 9], [6, 7], [4, 5], [2, 3], [0, 1],
+        [8, 9], [6, 7], [4, 5], [2, 3], [0, 1]
+      ];
+      const trietPair = TRIET_MAP[yearCanIdx];
+      for (let i = 0; i < 12; i++) {
+        palaces[i].hasTuan = tuanPair.includes(i);
+        palaces[i].hasTriet = trietPair.includes(i);
+      }
+
+      return {
+        input,
+        solarDate: { year: sYear, month: sMonth, day: sDay },
+        lunarDate,
+        canChi: {
+          yearCan, yearChi, yearCanIdx, yearChiIdx,
+          monthCan, monthChi, dayCan, dayChi,
+          hourCan, hourChi: CHI[chiHourIdx], chiHourIdx
+        },
+        banMenh: {
+          napAm, amDuong, thuanNghich, cucInfo, menhCucRelation,
+          menhPos, thanPos, thanCuPalaceName, menhChu, thanChu
+        },
+        palaces,
+        tuHoaList
+      };
+    }
+
+    /**
+     * 4. TÍNH TIỂU HẠN, LƯU NIÊN (L.) & SAO ĐẠI VẬN (ĐV.)
+     */
+    function calculateAnnualFortune(chart, targetYear) {
+      const lunarAge = targetYear - chart.lunarDate.year + 1;
+      const targetCanIdx = MOD(targetYear - 4, 10);
+      const targetChiIdx = MOD(targetYear - 4, 12);
+      const targetCan = CAN[targetCanIdx];
+      const targetChi = CHI[targetChiIdx];
+
+      const TIEU_HAN_START = {
+        2: 4, 6: 4, 10: 4,
+        8: 10, 0: 10, 4: 10,
+        5: 7, 9: 7, 1: 7,
+        11: 1, 3: 1, 7: 1
+      };
+      const startChi = TIEU_HAN_START[chart.canChi.yearChiIdx];
+      const isMale = chart.input.gender === 'Nam';
+      const step = MOD(targetChiIdx - chart.canChi.yearChiIdx, 12);
+      const tieuHanPos = isMale ? MOD(startChi + step, 12) : MOD(startChi - step, 12);
+
+      const activeDaiHan = chart.palaces.find(
+        p => lunarAge >= p.daiHanStart && lunarAge <= p.daiHanEnd
+      ) || chart.palaces[chart.banMenh.menhPos];
+
+      const TU_HOA_BY_CAN = [
+        ['Liêm Trinh', 'Phá Quân', 'Vũ Khúc', 'Thái Dương'],
+        ['Thiên Cơ', 'Thiên Lương', 'Tử Vi', 'Thái Âm'],
+        ['Thiên Đồng', 'Thiên Cơ', 'Văn Xương', 'Liêm Trinh'],
+        ['Thái Âm', 'Thiên Đồng', 'Thiên Cơ', 'Cự Môn'],
+        ['Tham Lang', 'Thái Âm', 'Hữu Bật', 'Thiên Cơ'],
+        ['Vũ Khúc', 'Tham Lang', 'Thiên Lương', 'Văn Khúc'],
+        ['Thái Dương', 'Vũ Khúc', 'Thái Âm', 'Thiên Đồng'],
+        ['Cự Môn', 'Thái Dương', 'Văn Khúc', 'Văn Xương'],
+        ['Thiên Lương', 'Tử Vi', 'Tả Phù', 'Vũ Khúc'],
+        ['Phá Quân', 'Cự Môn', 'Thái Âm', 'Tham Lang']
+      ];
+      const LOC_TON_POS = [2, 3, 5, 6, 5, 6, 8, 9, 11, 0];
+      const KHOI_VIET_MAP = [
+        [1, 7], [0, 8], [11, 9], [11, 9], [1, 7],
+        [0, 8], [1, 7], [6, 2], [3, 5], [3, 5]
+      ];
+      const TAM_HOP_MA_DAO = {
+        2: { ma: 8, dao: 3 }, 6: { ma: 8, dao: 3 }, 10: { ma: 8, dao: 3 },
+        8: { ma: 2, dao: 9 }, 0: { ma: 2, dao: 9 }, 4: { ma: 2, dao: 9 },
+        5: { ma: 11, dao: 6 }, 9: { ma: 11, dao: 6 }, 1: { ma: 11, dao: 6 },
+        11: { ma: 5, dao: 0 }, 3: { ma: 5, dao: 0 }, 7: { ma: 5, dao: 0 }
+      };
+
+      const luuStarsByPalace = Array.from({ length: 12 }, () => []);
+      const dvStarsByPalace = Array.from({ length: 12 }, () => []);
+
+      const addLuuStar = (pos, name, element, isCat) => {
+        luuStarsByPalace[MOD(pos, 12)].push({ name, element, isCat });
+      };
+      addLuuStar(targetChiIdx, 'L. Thái Tuế', 'Hỏa', false);
+      addLuuStar(targetChiIdx + 2, 'L. Tang Môn', 'Mộc', false);
+      addLuuStar(targetChiIdx + 8, 'L. Bạch Hổ', 'Kim', false);
+      addLuuStar(6 - targetChiIdx, 'L. Thiên Khốc', 'Kim', false);
+      addLuuStar(6 + targetChiIdx, 'L. Thiên Hư', 'Thủy', false);
+      const luuLocPos = LOC_TON_POS[targetCanIdx];
+      addLuuStar(luuLocPos, 'L. Lộc Tồn', 'Thổ', true);
+      addLuuStar(luuLocPos + 1, 'L. Kình Dương', 'Kim', false);
+      addLuuStar(luuLocPos - 1, 'L. Đà La', 'Kim', false);
+      addLuuStar(KHOI_VIET_MAP[targetCanIdx][0], 'L. Thiên Khôi', 'Hỏa', true);
+      addLuuStar(KHOI_VIET_MAP[targetCanIdx][1], 'L. Thiên Việt', 'Hỏa', true);
+      addLuuStar(TAM_HOP_MA_DAO[targetChiIdx].ma, 'L. Thiên Mã', 'Hỏa', true);
+      addLuuStar(TAM_HOP_MA_DAO[targetChiIdx].dao, 'L. Đào Hoa', 'Mộc', true);
+      addLuuStar(3 - targetChiIdx, 'L. Hồng Loan', 'Thủy', true);
+
+      const luuHoaNames = TU_HOA_BY_CAN[targetCanIdx];
+      const HOA_SHORT = ['L. Hóa Lộc', 'L. Hóa Quyền', 'L. Hóa Khoa', 'L. Hóa Kỵ'];
+      const luuTuHoa = luuHoaNames.map((starName, idx) => {
+        const foundPalace = chart.palaces.find(
+          p => p.chinhTinh.some(s => s.name === starName) || p.phuTinh.some(s => s.name === starName)
+        );
+        const pIdx = foundPalace ? foundPalace.chiIdx : 0;
+        addLuuStar(pIdx, HOA_SHORT[idx], idx === 3 ? 'Thủy' : 'Mộc', idx !== 3);
+        return {
+          hoa: ['Lưu Hóa Lộc', 'Lưu Hóa Quyền', 'Lưu Hóa Khoa', 'Lưu Hóa Kỵ'][idx],
+          star: starName,
+          palace: foundPalace ? foundPalace.name : 'MỆNH',
+          chiName: foundPalace ? foundPalace.chiName : 'Tý'
+        };
+      });
+
+      const dvCanIdx = CAN.indexOf(activeDaiHan.canName);
+      const addDvStar = (pos, name, element, isCat) => {
+        dvStarsByPalace[MOD(pos, 12)].push({ name, element, isCat });
+      };
+      const dvLocPos = LOC_TON_POS[dvCanIdx];
+      addDvStar(dvLocPos, 'ĐV. Lộc Tồn', 'Thổ', true);
+      addDvStar(dvLocPos + 1, 'ĐV. K Dương', 'Kim', false);
+      addDvStar(dvLocPos - 1, 'ĐV. Đà La', 'Kim', false);
+      addDvStar(KHOI_VIET_MAP[dvCanIdx][0], 'ĐV. T Khôi', 'Hỏa', true);
+      addDvStar(KHOI_VIET_MAP[dvCanIdx][1], 'ĐV. T Việt', 'Hỏa', true);
+      addDvStar(TAM_HOP_MA_DAO[activeDaiHan.chiIdx].ma, 'ĐV. T Mã', 'Hỏa', true);
+
+      const dvHoaNames = TU_HOA_BY_CAN[dvCanIdx];
+      const DV_HOA_SHORT = ['ĐV. H Lộc', 'ĐV. H Quyền', 'ĐV. H Khoa', 'ĐV. H Kỵ'];
+      dvHoaNames.forEach((starName, idx) => {
+        const foundPalace = chart.palaces.find(
+          p => p.chinhTinh.some(s => s.name === starName) || p.phuTinh.some(s => s.name === starName)
+        );
+        if (foundPalace) {
+          addDvStar(foundPalace.chiIdx, DV_HOA_SHORT[idx], idx === 3 ? 'Thủy' : 'Mộc', idx !== 3);
+        }
+      });
+
+      const tieuHanChiByPalace = Array.from({ length: 12 }, (_, chiIdx) => {
+        const offset = isMale ? MOD(chiIdx - tieuHanPos, 12) : MOD(tieuHanPos - chiIdx, 12);
+        return CHI[MOD(targetChiIdx + offset, 12)];
+      });
+
+      const month1Pos = MOD(tieuHanPos - (chart.lunarDate.month - 1) + chart.canChi.chiHourIdx, 12);
+      const monthLabelsByPalace = Array.from({ length: 12 }, (_, chiIdx) => {
+        const m = MOD(chiIdx - month1Pos, 12) + 1;
+        return `T.${m}`;
+      });
+
+      return {
+        targetYear, lunarAge, canChi: `${targetCan} ${targetChi}`,
+        tieuHanPalace: chart.palaces[tieuHanPos],
+        luuNienPalace: chart.palaces[targetChiIdx],
+        activeDaiHan, luuTuHoa, luuStarsByPalace, dvStarsByPalace,
+        tieuHanChiByPalace, monthLabelsByPalace
+      };
+    }
+
+    /**
+     * 5. TAM PHƯƠNG TỨ CHÍNH & AI INTERPRETATION ENGINE
+     */
+    function getTamPhuongTuChinh(chart, chiIdx) {
+      const tamHop1 = MOD(chiIdx + 4, 12);
+      const tamHop2 = MOD(chiIdx + 8, 12);
+      const xungChieu = MOD(chiIdx + 6, 12);
+      return {
+        chinhCung: chart.palaces[chiIdx],
+        tamHop1: chart.palaces[tamHop1],
+        tamHop2: chart.palaces[tamHop2],
+        xungChieu: chart.palaces[xungChieu],
+        indices: [chiIdx, tamHop1, tamHop2, xungChieu]
+      };
+    }
+
+    function generatePalaceAnalysis(chart, chiIdx) {
+      const tptc = getTamPhuongTuChinh(chart, chiIdx);
+      const palace = tptc.chinhCung;
+      const meta = PALACE_DESCRIPTIONS[palace.name];
+
+      const isVCD = palace.chinhTinh.length === 0;
+      const effectiveMainStars = isVCD ? tptc.xungChieu.chinhTinh : palace.chinhTinh;
+      const catStars = palace.phuTinh.filter(s => s.type === 'cat');
+      const satStars = palace.phuTinh.filter(s => s.type === 'sat');
+
+      const relatedChinhTinh = [
+        ...tptc.tamHop1.chinhTinh.map(s => `${s.name} (${s.brightness}) tại ${tptc.tamHop1.name}`),
+        ...tptc.tamHop2.chinhTinh.map(s => `${s.name} (${s.brightness}) tại ${tptc.tamHop2.name}`),
+        ...tptc.xungChieu.chinhTinh.map(s => `${s.name} (${s.brightness}) tại ${tptc.xungChieu.name}`)
+      ];
+
+      const allFourIndices = tptc.indices;
+      const relatedTuHoa = chart.tuHoaList.filter(th => {
+        const p = chart.palaces.find(item => item.name === th.palace);
+        return p && allFourIndices.includes(p.chiIdx);
+      });
+
+      let score = 0;
+      effectiveMainStars.forEach(s => {
+        if (s.brightness === 'M' || s.brightness === 'V') score += 2;
+        else if (s.brightness === 'Đ') score += 1;
+        else if (s.brightness === 'H') score -= 1;
+      });
+      score += Math.min(catStars.length * 0.4, 2.5);
+      score -= Math.min(satStars.length * 0.4, 2.5);
+      relatedTuHoa.forEach(th => {
+        if (th.hoa === 'Hóa Kỵ') score -= 1;
+        else score += 1;
+      });
+
+      let rating = 'Bình ổn';
+      if (score >= 2) rating = 'Thuận';
+      else if (score <= -1.2) rating = 'Cần giữ';
+
+      const mainStarIntro = isVCD
+        ? `Cung ${palace.name} tại ${palace.chiName} ở thế Vô Chính Diệu (không có chính tinh tọa thủ), nên mượn bộ chính tinh ${effectiveMainStars.map(s => `${s.name} (${s.brightness})`).join(' và ')} từ cung xung chiếu ${tptc.xungChieu.name} (${tptc.xungChieu.chiName}) làm nòng cốt định hướng.`
+        : `Cung ${palace.name} tại ${palace.chiName} có ${palace.chinhTinh.map(s => `${s.name} (${s.brightness === 'M' ? 'Miếu' : s.brightness === 'V' ? 'Vượng' : s.brightness === 'Đ' ? 'Đắc' : s.brightness === 'B' ? 'Bình' : 'Hãm'})`).join(' đồng cung ')} tọa thủ.`;
+
+      const auxIntro = catStars.length > 0
+        ? `Về trợ lực, cung hội tụ các cát tinh như ${catStars.slice(0, 6).map(s => s.name).join(', ')}, giúp tăng cường sự hanh thông và khả năng thích ứng.`
+        : `Về phụ tinh, cung không có nhiều cát tinh trực chiếu nên cần nương tựa thêm vào bộ sao từ tam hợp chiếu về.`;
+
+      const satIntro = satStars.length > 0
+        ? `Đồng thời có sự hiện diện của ${satStars.slice(0, 5).map(s => s.name).join(', ')}, tạo nên áp lực rèn luyện hoặc đòi hỏi sự cẩn trọng trong hành động.`
+        : `Cung ít chịu tác động trực tiếp của sát tinh nặng, giữ được sự ổn định tương đối.`;
+
+      const tptcIntro = `Xét trên toàn cục Tam Phương Tứ Chính (${palace.name} – ${tptc.tamHop1.name} – ${tptc.tamHop2.name} – ${tptc.xungChieu.name}), cung nhận được sự hội chiếu của ${relatedChinhTinh.length > 0 ? relatedChinhTinh.join('; ') : 'các cung Vô Chính Diệu đồng thanh tương ứng'}. ${relatedTuHoa.length > 0 ? `Đáng chú ý trong tam phương tứ chính có ${relatedTuHoa.map(th => `${th.hoa} đi cùng ${th.star} tại ${th.palace}`).join(', ')}.` : ''}`;
+
+      return {
+        palace, tptc, meta, isVCD, effectiveMainStars, catStars, satStars, relatedTuHoa, rating,
+        sections: {
+          overview: meta.focus,
+          mainStarsText: mainStarIntro,
+          auxStarsText: `${auxIntro} ${satIntro}`,
+          tptcText: tptcIntro,
+          strengths: effectiveMainStars.map(s => CHINH_TINH_DATA[s.name]?.favorable).filter(Boolean).join(' '),
+          cautions: effectiveMainStars.map(s => CHINH_TINH_DATA[s.name]?.caution).filter(Boolean).join(' ')
+        }
+      };
+    }
+
+    /**
+     * 6. SVG LOGO COMPONENT
+     */
+    const MenhLyLogo = ({ size = 38 }) => (
+      <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="24" r="22" stroke="#C5A66A" strokeWidth="1.5" />
+        <circle cx="24" cy="24" r="18" stroke="#244C43" strokeWidth="1" strokeDasharray="3 3" />
+        <path d="M24 6C33.9411 6 42 14.0589 42 24C42 33.9411 33.9411 42 24 42C19.0294 42 15 37.9706 15 33C15 28.0294 19.0294 24 24 24C28.9706 24 33 19.9706 33 15C33 10.0294 28.9706 6 24 6Z" fill="#244C43" />
+        <path d="M24 6C14.0589 6 6 14.0589 6 24C6 33.9411 14.0589 42 24 42C28.9706 42 33 37.9706 33 33C33 28.0294 28.9706 24 24 24C19.0294 24 15 19.9706 15 15C15 10.0294 19.0294 6 24 6Z" fill="#F3F0E5" />
+        <circle cx="24" cy="15" r="3" fill="#C5A66A" />
+        <circle cx="24" cy="33" r="3" fill="#244C43" />
+      </svg>
+    );
+
+    /**
+     * 7. LÁ SỐ 12 CUNG TƯƠNG TÁC TRỰC QUAN
+     */
+    const TuViGridChart = ({
+      chart, selectedChiIdx, onSelectPalace, onSelectStar, annualFortune,
+      showLuuNien = true, showDaiVan = true
+    }) => {
+      const [viewMode, setViewMode] = useState('grid');
+      const tptc = useMemo(() => getTamPhuongTuChinh(chart, selectedChiIdx), [chart, selectedChiIdx]);
+
+      const CELL_COORDS = {
+        5: { row: 1, col: 1, cx: 12.5, cy: 12.5 },
+        6: { row: 1, col: 2, cx: 37.5, cy: 12.5 },
+        7: { row: 1, col: 3, cx: 62.5, cy: 12.5 },
+        8: { row: 1, col: 4, cx: 87.5, cy: 12.5 },
+        4: { row: 2, col: 1, cx: 12.5, cy: 37.5 },
+        9: { row: 2, col: 4, cx: 87.5, cy: 37.5 },
+        3: { row: 3, col: 1, cx: 12.5, cy: 62.5 },
+        10: { row: 3, col: 4, cx: 87.5, cy: 62.5 },
+        2: { row: 4, col: 1, cx: 12.5, cy: 87.5 },
+        1: { row: 4, col: 2, cx: 37.5, cy: 87.5 },
+        0: { row: 4, col: 3, cx: 62.5, cy: 87.5 },
+        11: { row: 4, col: 4, cx: 87.5, cy: 87.5 }
+      };
+
+      const cMain = CELL_COORDS[selectedChiIdx];
+      const cTH1 = CELL_COORDS[tptc.tamHop1.chiIdx];
+      const cTH2 = CELL_COORDS[tptc.tamHop2.chiIdx];
+      const cXC = CELL_COORDS[tptc.xungChieu.chiIdx];
+
+      return (
+        <div className="w-full">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2 text-xs text-[#244C43]/80">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#244C43] text-[#F3F0E5] font-medium">
+                Đang chọn: {tptc.chinhCung.name} ({tptc.chinhCung.chiName})
+              </span>
+              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#C5A66A]/20 text-[#244C43] border border-[#C5A66A]/40">
+                Tam hợp: {tptc.tamHop1.name} – {tptc.tamHop2.name}
+              </span>
+              <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#493C52]/10 text-[#493C52] border border-[#493C52]/30">
+                Xung chiếu: {tptc.xungChieu.name}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-[#D8CFC0]/60 p-1 rounded-xl border border-[#C5A66A]/30 print:hidden">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                  viewMode === 'grid' ? 'bg-[#244C43] text-[#F3F0E5] shadow-sm' : 'text-[#244C43] hover:bg-[#F3F0E5]/60'
+                }`}
+              >
+                <LucideIcon name="grid" className="w-3.5 h-3.5" />
+                <span>Lá số 12 cung</span>
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                  viewMode === 'list' ? 'bg-[#244C43] text-[#F3F0E5] shadow-sm' : 'text-[#244C43] hover:bg-[#F3F0E5]/60'
+                }`}
+              >
+                <LucideIcon name="list" className="w-3.5 h-3.5" />
+                <span>Danh sách</span>
+              </button>
+            </div>
+          </div>
+
+          {viewMode === 'list' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {chart.palaces.map((p) => {
+                const isSelected = p.chiIdx === selectedChiIdx;
+                const isRelated = tptc.indices.includes(p.chiIdx) && !isSelected;
+                return (
+                  <div
+                    key={p.chiIdx}
+                    onClick={() => onSelectPalace(p.chiIdx)}
+                    className={`p-4 rounded-2xl border transition cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#244C43]/[0.07] border-[#244C43] shadow-md'
+                        : isRelated
+                        ? 'bg-[#C5A66A]/[0.12] border-[#C5A66A]'
+                        : 'bg-[#FAF8F2] border-[#D8CFC0] hover:border-[#244C43]/50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between border-b border-[#D8CFC0] pb-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#244C43]/10 text-[#244C43]">
+                          {p.canChiLabel}
+                        </span>
+                        <span className="font-bold text-sm text-[#244C43]">{p.name}</span>
+                        {p.isThan && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#C45D4B] text-white">THÂN</span>
+                        )}
+                      </div>
+                      <span className="text-xs font-medium text-[#493C52]">ĐH {p.daiHanStart}</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {p.chinhTinh.length === 0 ? (
+                        <div className="text-xs italic text-[#244C43]/60">Vô Chính Diệu</div>
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5">
+                          {p.chinhTinh.map(s => (
+                            <button
+                              key={s.name}
+                              onClick={(e) => { e.stopPropagation(); onSelectStar(s.name, p); }}
+                              style={{ color: ELEMENT_COLORS[s.element] }}
+                              className="text-xs font-bold px-2 py-0.5 rounded bg-white border border-[#D8CFC0] hover:shadow-sm"
+                            >
+                              {s.name} ({s.brightness}) {s.tuHoa ? `[${s.tuHoa}]` : ''}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {p.phuTinh.map((s, idx) => (
+                          <button
+                            key={`${s.name}-${idx}`}
+                            onClick={(e) => { e.stopPropagation(); onSelectStar(s.name, p); }}
+                            style={{ color: ELEMENT_COLORS[s.element] }}
+                            className="text-[11px] hover:underline"
+                          >
+                            {s.name}{s.brightness ? ` (${s.brightness})` : ''}{idx < p.phuTinh.length - 1 ? ',' : ''}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="w-full overflow-x-auto pb-2">
+              <div className="min-w-[820px] lg:min-w-full relative bg-[#FAF8F2] border-2 border-[#244C43] rounded-2xl shadow-lg overflow-hidden">
+                <svg
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                  className="absolute inset-0 w-full h-full pointer-events-none z-10"
+                >
+                  <polygon
+                    points={`${cMain.cx},${cMain.cy} ${cTH1.cx},${cTH1.cy} ${cTH2.cx},${cTH2.cy}`}
+                    fill="rgba(197, 166, 106, 0.08)"
+                    stroke="#C5A66A"
+                    strokeWidth="0.35"
+                    strokeDasharray="1.2 0.8"
+                  />
+                  <line
+                    x1={cMain.cx}
+                    y1={cMain.cy}
+                    x2={cXC.cx}
+                    y2={cXC.cy}
+                    stroke="#C45D4B"
+                    strokeWidth="0.35"
+                    strokeDasharray="1.5 0.8"
+                  />
+                </svg>
+
+                <div className="grid grid-cols-4 grid-rows-4">
+                  {Object.entries(CELL_COORDS).map(([chiKey, { row, col }]) => {
+                    const chiIdx = Number(chiKey);
+                    const p = chart.palaces[chiIdx];
+                    const isSelected = chiIdx === selectedChiIdx;
+                    const isTamHop = chiIdx === tptc.tamHop1.chiIdx || chiIdx === tptc.tamHop2.chiIdx;
+                    const isXungChieu = chiIdx === tptc.xungChieu.chiIdx;
+
+                    let cellBg = 'bg-[#FAF8F2]/95';
+                    if (isSelected) cellBg = 'bg-[#244C43]/[0.09] ring-2 ring-inset ring-[#244C43]';
+                    else if (isTamHop) cellBg = 'bg-[#C5A66A]/[0.14]';
+                    else if (isXungChieu) cellBg = 'bg-[#493C52]/[0.08]';
+
+                    const catTinh = p.phuTinh.filter(s => s.type === 'cat');
+                    const satTinh = p.phuTinh.filter(s => s.type !== 'cat');
+                    const luuStars = annualFortune && showLuuNien ? (annualFortune.luuStarsByPalace[chiIdx] || []) : [];
+                    const dvStars = annualFortune && showDaiVan ? (annualFortune.dvStarsByPalace[chiIdx] || []) : [];
+                    const luuCat = luuStars.filter(s => s.isCat);
+                    const luuSat = luuStars.filter(s => !s.isCat);
+                    const dvCat = dvStars.filter(s => s.isCat);
+                    const dvSat = dvStars.filter(s => !s.isCat);
+
+                    const monthLabel = annualFortune ? annualFortune.monthLabelsByPalace[chiIdx] : `T.${MOD(chiIdx - chart.banMenh.menhPos, 12) + 1}`;
+                    const tieuHanChi = annualFortune ? annualFortune.tieuHanChiByPalace[chiIdx] : CHI[MOD(chiIdx + 8, 12)];
+
+                    const showTuanBadge = p.hasTuan && [0, 2, 4, 6, 8, 10].includes(chiIdx);
+                    const showTrietBadge = p.hasTriet && [0, 2, 4, 6, 8].includes(chiIdx);
+
+                    return (
+                      <div
+                        key={chiIdx}
+                        style={{ gridRow: row, gridColumn: col }}
+                        onClick={() => onSelectPalace(chiIdx)}
+                        className={`border border-[#D8CFC0] p-2 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:bg-[#244C43]/[0.05] relative z-20 min-h-[205px] ${cellBg}`}
+                      >
+                        {showTuanBadge && (
+                          <span className="absolute -bottom-2.5 right-0 translate-x-1/2 z-30 px-2 py-0.5 bg-[#1E2B27] text-[#F3F0E5] text-[9px] font-bold tracking-wider rounded shadow">
+                            Tuần
+                          </span>
+                        )}
+                        {showTrietBadge && (
+                          <span className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 z-30 px-2 py-0.5 bg-[#1E2B27] text-[#F3F0E5] text-[9px] font-bold tracking-wider rounded shadow">
+                            Triệt
+                          </span>
+                        )}
+
+                        <div>
+                          <div className="flex items-center justify-between text-[11px] mb-1">
+                            <span
+                              style={{ color: ELEMENT_COLORS[NAP_AM_60[getSexagenaryIndex(CAN.indexOf(p.canName), chiIdx)]?.element || 'Thổ'] }}
+                              className="font-semibold"
+                            >
+                              {p.canChiLabel}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <span className="font-bold text-[#1E2B27] tracking-tight text-xs">
+                                {p.name}
+                              </span>
+                              {p.isThan && (
+                                <span className="px-1.5 py-0.2 bg-[#C45D4B] text-white text-[9px] font-bold rounded">
+                                  Thân
+                                </span>
+                              )}
+                            </div>
+                            <span className="font-bold text-[#1E2B27] text-[11px]">
+                              {p.daiHanStart}
+                            </span>
+                          </div>
+
+                          <div className="text-center my-1 min-h-[30px] flex flex-col items-center justify-center">
+                            {p.chinhTinh.length === 0 ? (
+                              <span className="text-[11px] italic text-[#244C43]/45">Vô Chính Diệu</span>
+                            ) : (
+                              p.chinhTinh.map(s => (
+                                <button
+                                  key={s.name}
+                                  onClick={(e) => { e.stopPropagation(); onSelectStar(s.name, p); }}
+                                  style={{ color: ELEMENT_COLORS[s.element] }}
+                                  className="text-[13px] font-bold leading-tight hover:underline flex items-center gap-1"
+                                >
+                                  <span>{s.name} ({s.brightness})</span>
+                                  {s.tuHoa && (
+                                    <span className={`text-[9px] px-1 rounded text-white ${s.tuHoa === 'Hóa Kỵ' ? 'bg-[#C45D4B]' : 'bg-[#244C43]'}`}>
+                                      {s.tuHoa}
+                                    </span>
+                                  )}
+                                </button>
+                              ))
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-x-1.5 text-[10.5px] leading-[1.35] mt-1">
+                            <div className="flex flex-col items-start">
+                              {catTinh.map((s, idx) => (
+                                <button
+                                  key={`${s.name}-${idx}`}
+                                  onClick={(e) => { e.stopPropagation(); onSelectStar(s.name, p); }}
+                                  style={{ color: ELEMENT_COLORS[s.element] }}
+                                  className={`text-left hover:underline ${['Hóa Lộc', 'Hóa Quyền', 'Hóa Khoa'].includes(s.name) ? 'font-bold' : 'font-medium'}`}
+                                >
+                                  {s.name}{s.brightness ? ` (${s.brightness})` : ''}
+                                </button>
+                              ))}
+                              {luuCat.map((s, idx) => (
+                                <span key={`lc-${idx}`} style={{ color: ELEMENT_COLORS[s.element] }} className="font-medium">
+                                  {s.name}
+                                </span>
+                              ))}
+                              {dvCat.map((s, idx) => (
+                                <span key={`dvc-${idx}`} style={{ color: ELEMENT_COLORS[s.element] }} className="font-medium">
+                                  {s.name}
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="flex flex-col items-start">
+                              {satTinh.map((s, idx) => (
+                                <button
+                                  key={`${s.name}-${idx}`}
+                                  onClick={(e) => { e.stopPropagation(); onSelectStar(s.name, p); }}
+                                  style={{ color: ELEMENT_COLORS[s.element] }}
+                                  className={`text-left hover:underline ${s.name === 'Hóa Kỵ' ? 'font-bold' : 'font-medium'}`}
+                                >
+                                  {s.name}{s.brightness ? ` (${s.brightness})` : ''}
+                                </button>
+                              ))}
+                              {luuSat.map((s, idx) => (
+                                <span key={`ls-${idx}`} style={{ color: ELEMENT_COLORS[s.element] }} className="font-medium">
+                                  {s.name}
+                                </span>
+                              ))}
+                              {dvSat.map((s, idx) => (
+                                <span key={`dvs-${idx}`} style={{ color: ELEMENT_COLORS[s.element] }} className="font-medium">
+                                  {s.name}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[10.5px] pt-1.5 mt-1 border-t border-[#D8CFC0]/60">
+                          <span className="text-[#244C43]/80 font-medium">{tieuHanChi}</span>
+                          <span className="font-semibold text-[#A78B62]">{p.trangSinh}</span>
+                          <span className="font-bold text-[#1E2B27]">{monthLabel}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Khu vực Thiên Bàn Trung Tâm (2x2) */}
+                  <div
+                    style={{ gridRow: '2 / span 2', gridColumn: '2 / span 2' }}
+                    className="border border-[#D8CFC0] bg-[#F3F0E5]/95 p-4 flex flex-col justify-between relative z-20"
+                  >
+                    <div className="text-center border-b border-[#C5A66A]/40 pb-2.5">
+                      <div className="flex items-center justify-center gap-2">
+                        <MenhLyLogo size={26} />
+                        <span className="font-serif text-lg font-bold tracking-widest text-[#244C43]">
+                          LÁ SỐ TỬ VI
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#244C43]/70 mt-0.5">
+                        MỆNH LÝ — Huyền Học Á Đông Hiện Đại
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-12 gap-y-1.5 text-xs my-2 text-[#1E2B27]">
+                      <div className="col-span-4 text-[#244C43]/70 font-medium">Họ tên</div>
+                      <div className="col-span-8 font-bold text-[#244C43]">{chart.input.fullName || 'Đương số'}</div>
+
+                      <div className="col-span-4 text-[#244C43]/70 font-medium">Năm</div>
+                      <div className="col-span-4 font-medium">{chart.solarDate.year} ({chart.lunarDate.year})</div>
+                      <div className="col-span-4 font-bold">{chart.canChi.yearCan} {chart.canChi.yearChi}</div>
+
+                      <div className="col-span-4 text-[#244C43]/70 font-medium">Tháng</div>
+                      <div className="col-span-4 font-medium">
+                        {chart.solarDate.month} ({chart.lunarDate.month}{chart.lunarDate.isLeap ? ' nhuận' : ''})
+                      </div>
+                      <div className="col-span-4 font-bold">{chart.canChi.monthCan} {chart.canChi.monthChi}</div>
+
+                      <div className="col-span-4 text-[#244C43]/70 font-medium">Ngày</div>
+                      <div className="col-span-4 font-medium">{chart.solarDate.day} ({chart.lunarDate.day})</div>
+                      <div className="col-span-4 font-bold">{chart.canChi.dayCan} {chart.canChi.dayChi}</div>
+
+                      <div className="col-span-4 text-[#244C43]/70 font-medium">Giờ</div>
+                      <div className="col-span-4 font-medium">{chart.input.hour}h{String(chart.input.minute || 0).padStart(2, '0')}</div>
+                      <div className="col-span-4 font-bold">{chart.canChi.hourCan} {chart.canChi.hourChi}</div>
+
+                      {annualFortune && (
+                        <>
+                          <div className="col-span-4 text-[#244C43]/70 font-medium">Năm xem</div>
+                          <div className="col-span-4 font-semibold">{annualFortune.targetYear}</div>
+                          <div className="col-span-4 font-bold text-[#C45D4B]">
+                            {annualFortune.canChi} ({annualFortune.lunarAge} tuổi)
+                          </div>
+                        </>
+                      )}
+
+                      <div className="col-span-4 text-[#244C43]/70 font-medium">Âm Dương</div>
+                      <div className="col-span-8">
+                        <span className="font-bold">{chart.banMenh.amDuong}</span>
+                        <span className="text-[11px] text-[#244C43]/75 block">{chart.banMenh.thuanNghich}</span>
+                      </div>
+
+                      <div className="col-span-4 text-[#244C43]/70 font-medium">Mệnh</div>
+                      <div
+                        className="col-span-8 font-bold"
+                        style={{ color: ELEMENT_COLORS[chart.banMenh.napAm.element] }}
+                      >
+                        {chart.banMenh.napAm.name}
+                      </div>
+
+                      <div className="col-span-4 text-[#244C43]/70 font-medium">Cục</div>
+                      <div className="col-span-8">
+                        <span className="font-bold text-[#244C43]">{chart.banMenh.cucInfo.name}</span>
+                        <span className="text-[11px] text-[#244C43]/75 block">{chart.banMenh.menhCucRelation}</span>
+                      </div>
+
+                      <div className="col-span-4 text-[#244C43]/70 font-medium">Mệnh chủ</div>
+                      <div className="col-span-8 font-bold">{chart.banMenh.menhChu}</div>
+
+                      <div className="col-span-4 text-[#244C43]/70 font-medium">Thân chủ</div>
+                      <div className="col-span-8 font-bold">{chart.banMenh.thanChu} (Thân cư {chart.banMenh.thanCuPalaceName})</div>
+                    </div>
+
+                    <div className="pt-2 border-t border-[#C5A66A]/40 flex flex-wrap items-center justify-between gap-2 text-[10px]">
+                      <span className="text-[#244C43]/80 font-medium">
+                        M: Miếu · V: Vượng · Đ: Đắc · B: Bình · H: Hãm
+                      </span>
+                      <div className="flex items-center gap-2 font-semibold">
+                        {Object.entries(ELEMENT_COLORS).map(([el, color]) => (
+                          <span key={el} className="inline-flex items-center gap-1" style={{ color }}>
+                            <span className="w-2 h-2 rounded-sm inline-block" style={{ backgroundColor: color }} />
+                            {el}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    /**
+     * 8. ỨNG DỤNG CHÍNH: MỆNH LÝ — TỬ VI ĐẨU SỐ TRỌN ĐỜI
+     */
+    const DEFAULT_PROFILE = {
+      id: 'default-bao-dinh',
+      fullName: 'Khổng Bảo Dinh',
+      gender: 'Nữ',
+      year: 2004,
+      month: 7,
+      day: 20,
+      calendarType: 'solar',
+      isLeap: false,
+      hour: 15,
+      minute: 30,
+      birthPlace: 'Việt Nam (UTC+7)',
+      lateZiRule: 'sameDay',
+      leapMonthRule: 'currentMonth',
+      school: 'Nam Phái Việt Nam'
+    };
+
+    const TEST_CASE_1990 = {
+      id: 'test-1990',
+      fullName: 'Mẫu Kiểm Chứng (20/03/1990)',
+      gender: 'Nam',
+      year: 1990,
+      month: 3,
+      day: 20,
+      calendarType: 'solar',
+      isLeap: false,
+      hour: 8,
+      minute: 30,
+      birthPlace: 'Việt Nam (UTC+7)',
+      lateZiRule: 'sameDay',
+      leapMonthRule: 'currentMonth',
+      school: 'Nam Phái Việt Nam'
+    };
+
+    function App() {
+      const [activeTab, setActiveTab] = useState('chart');
+      const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+      const [formInput, setFormInput] = useState(DEFAULT_PROFILE);
+      const [savedProfiles, setSavedProfiles] = useState(() => {
+        try {
+          const raw = localStorage.getItem('menhly_saved_profiles_v2');
+          if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return [DEFAULT_PROFILE, TEST_CASE_1990];
+      });
+
+      useEffect(() => {
+        try {
+          localStorage.setItem('menhly_saved_profiles_v2', JSON.stringify(savedProfiles));
+        } catch (e) {}
+      }, [savedProfiles]);
+
+      const chart = useMemo(() => calculateTuViChart(formInput), [formInput]);
+
+      const [selectedChiIdx, setSelectedChiIdx] = useState(chart.banMenh.menhPos);
+      const [selectedStarModal, setSelectedStarModal] = useState(null);
+      const [targetYear, setTargetYear] = useState(2026);
+      const [showLuuNien, setShowLuuNien] = useState(true);
+      const [showDaiVan, setShowDaiVan] = useState(true);
+
+      useEffect(() => {
+        setSelectedChiIdx(chart.banMenh.menhPos);
+      }, [chart.banMenh.menhPos]);
+
+      const annualFortune = useMemo(
+        () => calculateAnnualFortune(chart, targetYear),
+        [chart, targetYear]
+      );
+
+      const selectedPalaceAnalysis = useMemo(
+        () => generatePalaceAnalysis(chart, selectedChiIdx),
+        [chart, selectedChiIdx]
+      );
+
+      const [starSearch, setStarSearch] = useState('');
+      const [elementFilter, setElementFilter] = useState('ALL');
+      const [selectedTopic, setSelectedTopic] = useState('career');
+      const [compareProfileId, setCompareProfileId] = useState(TEST_CASE_1990.id);
+      const [toastMsg, setToastMsg] = useState(null);
+
+      const notify = (msg) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(null), 3200);
+      };
+
+      const handleSaveProfile = () => {
+        const id = formInput.id && formInput.id !== 'custom' ? formInput.id : `chart-${Date.now()}`;
+        const updated = { ...formInput, id };
+        setSavedProfiles(prev => {
+          const exists = prev.some(item => item.id === id);
+          return exists ? prev.map(item => (item.id === id ? updated : item)) : [updated, ...prev];
+        });
+        setFormInput(updated);
+        notify(`Đã lưu lá số "${updated.fullName || 'Đương số'}" vào danh sách.`);
+      };
+
+      const handleDeleteProfile = (id) => {
+        setSavedProfiles(prev => prev.filter(item => item.id !== id));
+        notify('Đã xóa lá số khỏi danh sách lưu trữ.');
+      };
+
+      const NAV_ITEMS = [
+        { id: 'create', label: 'Lập Lá Số', icon: 'compass' },
+        { id: 'chart', label: 'Lá Số 12 Cung', icon: 'grid' },
+        { id: 'palaces', label: 'Luận 12 Cung', icon: 'layers' },
+        { id: 'fortune', label: 'Đại & Tiểu Hạn', icon: 'calendar' },
+        { id: 'topics', label: 'Luận Chủ Đề', icon: 'sparkles' },
+        { id: 'stars', label: 'Tra Cứu Sao', icon: 'star' },
+        { id: 'compare', label: 'So Sánh Lá Số', icon: 'git-compare' },
+        { id: 'saved', label: 'Lá Số Đã Lưu', icon: 'history' }
+      ];
+
+      const TOPIC_CONFIG = {
+        career: { title: 'Sự Nghiệp & Công Danh', icon: 'briefcase', palaces: ['QUAN LỘC', 'MỆNH', 'TÀI BẠCH', 'THIÊN DI'] },
+        wealth: { title: 'Tài Chính & Tài Lộc', icon: 'coins', palaces: ['TÀI BẠCH', 'ĐIỀN TRẠCH', 'PHÚC ĐỨC', 'QUAN LỘC'] },
+        love: { title: 'Tình Duyên & Hôn Nhân', icon: 'heart', palaces: ['PHU THÊ', 'MỆNH', 'PHÚC ĐỨC', 'TỬ TỨC'] },
+        health: { title: 'Sức Khỏe & Dưỡng Sinh', icon: 'activity', palaces: ['TẬT ÁCH', 'MỆNH', 'PHÚC ĐỨC', 'ĐIỀN TRẠCH'] },
+        family: { title: 'Gia Đình & Phúc Phần', icon: 'home', palaces: ['PHÚC ĐỨC', 'PHỤ MẪU', 'HUYNH ĐỆ', 'TỬ TỨC'] },
+        social: { title: 'Bạn Bè & Quý Nhân', icon: 'users', palaces: ['NÔ BỘC', 'THIÊN DI', 'QUAN LỘC', 'MỆNH'] }
+      };
+
+      return (
+        <div className="min-h-screen bg-[#F3F0E5] text-[#1E2B27] font-sans selection:bg-[#244C43] selection:text-[#F3F0E5]">
+          {toastMsg && (
+            <div className="fixed bottom-5 right-5 z-50 bg-[#244C43] text-[#F3F0E5] px-4 py-3 rounded-xl shadow-xl border border-[#C5A66A] flex items-center gap-2.5 text-sm">
+              <LucideIcon name="check-circle-2" className="w-4 h-4 text-[#C5A66A]" />
+              <span>{toastMsg}</span>
+            </div>
+          )}
+
+          {selectedStarModal && (
+            <div
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+              onClick={() => setSelectedStarModal(null)}
+            >
+              <div
+                className="bg-[#FAF8F2] border-2 border-[#C5A66A] rounded-2xl max-w-lg w-full p-6 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {(() => {
+                  const { starName, palace } = selectedStarModal;
+                  const mainInfo = CHINH_TINH_DATA[starName];
+                  const auxInfo = PHU_TINH_DATA[starName];
+                  const element = mainInfo?.element || auxInfo?.element || 'Thổ';
+                  const starInPalace = palace.chinhTinh.find(s => s.name === starName) || palace.phuTinh.find(s => s.name === starName);
+                  const brightness = starInPalace?.brightness;
+
+                  return (
+                    <>
+                      <div className="flex items-start justify-between border-b border-[#D8CFC0] pb-3 mb-4">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-xl font-bold" style={{ color: ELEMENT_COLORS[element] }}>
+                              {starName}
+                            </h3>
+                            {brightness && (
+                              <span className="px-2 py-0.5 text-xs font-bold rounded bg-[#244C43] text-[#F3F0E5]">
+                                {brightness === 'M' ? 'Miếu Địa (M)' : brightness === 'V' ? 'Vượng Địa (V)' : brightness === 'Đ' ? 'Đắc Địa (Đ)' : brightness === 'B' ? 'Bình Hòa (B)' : 'Hãm Địa (H)'}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-[#244C43]/75 mt-1">
+                            Ngũ hành: <strong>{element}</strong> · Tọa thủ tại cung <strong>{palace.name} ({palace.chiName})</strong>
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setSelectedStarModal(null)}
+                          className="p-1.5 rounded-lg hover:bg-[#D8CFC0]/50 text-[#244C43]"
+                        >
+                          <LucideIcon name="x" className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <div className="space-y-3 text-sm leading-relaxed">
+                        <div className="p-3 rounded-xl bg-[#F3F0E5] border border-[#D8CFC0]">
+                          <div className="text-xs font-bold uppercase tracking-wider text-[#244C43] mb-1">
+                            Đặc tính cốt lõi
+                          </div>
+                          <p>{mainInfo?.summary || auxInfo?.desc || 'Phụ tinh tham gia điều phối sắc thái của cung vị.'}</p>
+                        </div>
+
+                        {mainInfo && (
+                          <>
+                            <div className="p-3 rounded-xl bg-[#3D7954]/10 border border-[#3D7954]/30">
+                              <div className="text-xs font-bold uppercase tracking-wider text-[#2F6544] mb-1">
+                                Biểu hiện thuận lợi
+                              </div>
+                              <p>{mainInfo.favorable}</p>
+                            </div>
+                            <div className="p-3 rounded-xl bg-[#C45D4B]/10 border border-[#C45D4B]/30">
+                              <div className="text-xs font-bold uppercase tracking-wider text-[#B04A38] mb-1">
+                                Điều cần lưu ý & tiết chế
+                              </div>
+                              <p>{mainInfo.caution}</p>
+                            </div>
+                          </>
+                        )}
+
+                        <div className="text-xs text-[#244C43]/75 pt-1">
+                          * Nguyên tắc Tử Vi: Không bao giờ dùng một sao đơn lẻ (kể cả khi ở vị trí Hãm) để kết luận toàn bộ vận mệnh; cần phối hợp với Tam Phương Tứ Chính và Tứ Hóa.
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+
+          {/* HEADER */}
+          <header className="sticky top-0 z-40 bg-[#244C43] text-[#F3F0E5] shadow-md border-b border-[#C5A66A]/40 print:hidden">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+              <div onClick={() => setActiveTab('chart')} className="flex items-center gap-3 cursor-pointer">
+                <MenhLyLogo size={36} />
+                <div>
+                  <div className="font-serif text-lg font-bold tracking-widest text-[#F3F0E5]">MỆNH LÝ</div>
+                  <div className="text-[10px] tracking-wider text-[#C5A66A] uppercase">Tử Vi Đẩu Số Trọn Đời</div>
+                </div>
+              </div>
+
+              <nav className="hidden xl:flex items-center gap-1">
+                {NAV_ITEMS.map(item => {
+                  const active = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition ${
+                        active ? 'bg-[#C5A66A] text-[#1E2B27] font-bold shadow-xs' : 'text-[#F3F0E5]/85 hover:bg-white/10'
+                      }`}
+                    >
+                      <LucideIcon name={item.icon} className="w-3.5 h-3.5" />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSaveProfile}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium border border-[#C5A66A]/40 transition"
+                >
+                  <LucideIcon name="save" className="w-3.5 h-3.5 text-[#C5A66A]" />
+                  <span>Lưu lá số</span>
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#C5A66A] text-[#1E2B27] hover:bg-[#d3b67c] text-xs font-bold transition"
+                >
+                  <LucideIcon name="printer" className="w-3.5 h-3.5" />
+                  <span>In / PDF</span>
+                </button>
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="xl:hidden p-2 rounded-xl bg-white/10 hover:bg-white/20"
+                  aria-label="Mở menu"
+                >
+                  <LucideIcon name={mobileMenuOpen ? "x" : "menu"} className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {mobileMenuOpen && (
+              <div className="xl:hidden bg-[#1D3E37] border-t border-[#C5A66A]/30 px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {NAV_ITEMS.map(item => {
+                  const active = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => { setActiveTab(item.id); setMobileMenuOpen(false); }}
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium ${
+                        active ? 'bg-[#C5A66A] text-[#1E2B27] font-bold' : 'bg-white/5 text-[#F3F0E5]'
+                      }`}
+                    >
+                      <LucideIcon name={item.icon} className="w-4 h-4" />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </header>
+
+          {/* THANH THÔNG TIN NHANH ĐƯƠNG SỐ */}
+          <div className="bg-[#D8CFC0]/60 border-b border-[#C5A66A]/40 print:hidden">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                <span className="font-bold text-[#244C43] text-sm">{chart.input.fullName || 'Đương số'}</span>
+                <span className="px-2 py-0.5 rounded-md bg-[#244C43] text-[#F3F0E5] font-medium">{chart.banMenh.amDuong}</span>
+                <span>DL: <strong>{chart.solarDate.day}/{chart.solarDate.month}/{chart.solarDate.year}</strong></span>
+                <span>
+                  ÂL: <strong>{chart.lunarDate.day}/{chart.lunarDate.month}{chart.lunarDate.isLeap ? ' (Nhuận)' : ''}/{chart.lunarDate.year} ({chart.canChi.yearCan} {chart.canChi.yearChi})</strong>
+                </span>
+                <span>Giờ: <strong>{chart.canChi.hourCan} {chart.canChi.hourChi}</strong></span>
+                <span className="font-bold" style={{ color: ELEMENT_COLORS[chart.banMenh.napAm.element] }}>{chart.banMenh.napAm.name}</span>
+                <span className="font-semibold text-[#493C52]">{chart.banMenh.cucInfo.name}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveTab('create')}
+                  className="px-3 py-1 rounded-lg bg-[#244C43] text-[#F3F0E5] font-medium hover:bg-[#1B3A33] transition"
+                >
+                  + Lập lá số mới
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* NỘI DUNG CHÍNH */}
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+            {/* TAB 1: FORM LẬP LÁ SỐ */}
+            {activeTab === 'create' && (
+              <div className="max-w-3xl mx-auto bg-[#FAF8F2] rounded-3xl border border-[#D8CFC0] p-6 sm:p-8 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D8CFC0] pb-4 mb-6">
+                  <div>
+                    <h1 className="text-2xl font-serif font-bold text-[#244C43]">Lập Lá Số Tử Vi Trọn Đời</h1>
+                    <p className="text-xs text-[#244C43]/75 mt-1">
+                      Hệ thống tự động quy đổi Âm – Dương lịch, tính Can Chi, Nạp Âm, Cục và an đầy đủ chính phụ tinh.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setFormInput(DEFAULT_PROFILE); notify('Đã nạp hồ sơ Khổng Bảo Dinh (2004).'); }}
+                      className="text-xs px-2.5 py-1.5 rounded-lg bg-[#A9BDA6]/30 text-[#244C43] font-medium hover:bg-[#A9BDA6]/50"
+                    >
+                      Mẫu 2004 (Nữ)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setFormInput(TEST_CASE_1990); notify('Đã nạp hồ sơ kiểm chứng 20/03/1990 (Nam).'); }}
+                      className="text-xs px-2.5 py-1.5 rounded-lg bg-[#C5A66A]/25 text-[#244C43] font-medium hover:bg-[#C5A66A]/40"
+                    >
+                      Mẫu 1990 (Nam)
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#244C43] mb-1.5">Họ và tên</label>
+                    <input
+                      type="text"
+                      value={formInput.fullName}
+                      onChange={(e) => setFormInput({ ...formInput, fullName: e.target.value })}
+                      placeholder="Nhập họ tên..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#F3F0E5] border border-[#D8CFC0] text-sm focus:outline-none focus:border-[#244C43]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#244C43] mb-1.5">Giới tính</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['Nam', 'Nữ'].map(g => (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => setFormInput({ ...formInput, gender: g })}
+                          className={`py-2.5 rounded-xl text-sm font-bold border transition ${
+                            formInput.gender === g
+                              ? 'bg-[#244C43] text-[#F3F0E5] border-[#244C43]'
+                              : 'bg-[#F3F0E5] text-[#244C43] border-[#D8CFC0]'
+                          }`}
+                        >
+                          {g}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#244C43] mb-1.5">Loại lịch nhập</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { id: 'solar', label: 'Dương lịch' },
+                        { id: 'lunar', label: 'Âm lịch' }
+                      ].map(cal => (
+                        <button
+                          key={cal.id}
+                          type="button"
+                          onClick={() => setFormInput({ ...formInput, calendarType: cal.id })}
+                          className={`py-2.5 rounded-xl text-sm font-bold border transition ${
+                            formInput.calendarType === cal.id
+                              ? 'bg-[#244C43] text-[#F3F0E5] border-[#244C43]'
+                              : 'bg-[#F3F0E5] text-[#244C43] border-[#D8CFC0]'
+                          }`}
+                        >
+                          {cal.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#244C43] mb-1.5">Năm xem vận hạn</label>
+                    <input
+                      type="number"
+                      min={1900}
+                      max={2100}
+                      value={targetYear}
+                      onChange={(e) => setTargetYear(Number(e.target.value) || 2026)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#F3F0E5] border border-[#D8CFC0] text-sm focus:outline-none focus:border-[#244C43]"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2 grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[#244C43] mb-1.5">Ngày sinh</label>
+                      <select
+                        value={formInput.day}
+                        onChange={(e) => setFormInput({ ...formInput, day: Number(e.target.value) })}
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#F3F0E5] border border-[#D8CFC0] text-sm"
+                      >
+                        {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                          <option key={d} value={d}>Ngày {d}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#244C43] mb-1.5">Tháng sinh</label>
+                      <select
+                        value={formInput.month}
+                        onChange={(e) => setFormInput({ ...formInput, month: Number(e.target.value) })}
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#F3F0E5] border border-[#D8CFC0] text-sm"
+                      >
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                          <option key={m} value={m}>Tháng {m}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#244C43] mb-1.5">Năm sinh</label>
+                      <input
+                        type="number"
+                        min={1900}
+                        max={2100}
+                        value={formInput.year}
+                        onChange={(e) => setFormInput({ ...formInput, year: Number(e.target.value) || 2000 })}
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#F3F0E5] border border-[#D8CFC0] text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {formInput.calendarType === 'lunar' && (
+                    <div className="sm:col-span-2 flex items-center gap-2 bg-[#C5A66A]/15 p-3 rounded-xl border border-[#C5A66A]/40">
+                      <input
+                        id="isLeapCheck"
+                        type="checkbox"
+                        checked={formInput.isLeap}
+                        onChange={(e) => setFormInput({ ...formInput, isLeap: e.target.checked })}
+                        className="w-4 h-4 accent-[#244C43]"
+                      />
+                      <label htmlFor="isLeapCheck" className="text-xs font-medium text-[#244C43]">
+                        Sinh vào tháng nhuận âm lịch
+                      </label>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#244C43] mb-1.5">Giờ sinh (12 Địa Chi)</label>
+                    <select
+                      value={formInput.hour}
+                      onChange={(e) => setFormInput({ ...formInput, hour: Number(e.target.value) })}
+                      className="w-full px-3 py-2.5 rounded-xl bg-[#F3F0E5] border border-[#D8CFC0] text-sm"
+                    >
+                      <option value={0}>Giờ Tý sớm (00h00 – 00h59)</option>
+                      <option value={1}>Giờ Sửu (01h00 – 02h59)</option>
+                      <option value={3}>Giờ Dần (03h00 – 04h59)</option>
+                      <option value={5}>Giờ Mão (05h00 – 06h59)</option>
+                      <option value={7}>Giờ Thìn (07h00 – 08h59)</option>
+                      <option value={9}>Giờ Tỵ (09h00 – 10h59)</option>
+                      <option value={11}>Giờ Ngọ (11h00 – 12h59)</option>
+                      <option value={13}>Giờ Mùi (13h00 – 14h59)</option>
+                      <option value={15}>Giờ Thân (15h00 – 16h59)</option>
+                      <option value={17}>Giờ Dậu (17h00 – 18h59)</option>
+                      <option value={19}>Giờ Tuất (19h00 – 20h59)</option>
+                      <option value={21}>Giờ Hợi (21h00 – 22h59)</option>
+                      <option value={23}>Giờ Tý muộn (23h00 – 23h59)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#244C43] mb-1.5">Quy tắc giờ Tý muộn (23h–24h)</label>
+                    <select
+                      value={formInput.lateZiRule}
+                      onChange={(e) => setFormInput({ ...formInput, lateZiRule: e.target.value })}
+                      className="w-full px-3 py-2.5 rounded-xl bg-[#F3F0E5] border border-[#D8CFC0] text-sm"
+                    >
+                      <option value="sameDay">Giữ nguyên ngày hiện tại (Nam Phái phổ biến)</option>
+                      <option value="nextDay">Tính sang ngày hôm sau (Dạ Tý)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-[#D8CFC0]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormInput({ ...formInput, id: `chart-${Date.now()}` });
+                      setActiveTab('chart');
+                      notify('Đã lập lá số Tử Vi thành công.');
+                    }}
+                    className="px-6 py-3 rounded-xl bg-[#244C43] text-[#F3F0E5] font-bold text-sm hover:bg-[#1A3932] shadow-md flex items-center gap-2 transition"
+                  >
+                    <LucideIcon name="compass" className="w-4 h-4 text-[#C5A66A]" />
+                    <span>Xem Lá Số Tử Vi Ngay</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: LÁ SỐ 12 CUNG */}
+            {activeTab === 'chart' && (
+              <div className="space-y-6">
+                <div className="bg-[#FAF8F2] p-4 rounded-2xl border border-[#D8CFC0] flex flex-wrap items-center justify-between gap-4 print:hidden">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-[#244C43]">Năm xem vận hạn:</span>
+                    <button
+                      onClick={() => setTargetYear(y => y - 1)}
+                      className="p-1.5 rounded-lg bg-[#F3F0E5] border border-[#D8CFC0] hover:bg-[#D8CFC0]"
+                    >
+                      <LucideIcon name="arrow-left" className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="px-3 py-1 rounded-lg bg-[#244C43] text-[#F3F0E5] text-xs font-bold">
+                      {targetYear} ({annualFortune.canChi} · {annualFortune.lunarAge} tuổi âm)
+                    </span>
+                    <button
+                      onClick={() => setTargetYear(y => y + 1)}
+                      className="p-1.5 rounded-lg bg-[#F3F0E5] border border-[#D8CFC0] hover:bg-[#D8CFC0]"
+                    >
+                      <LucideIcon name="arrow-right" className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 text-xs">
+                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={showLuuNien}
+                        onChange={(e) => setShowLuuNien(e.target.checked)}
+                        className="accent-[#244C43]"
+                      />
+                      <span>Sao Lưu Niên (L.)</span>
+                    </label>
+                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={showDaiVan}
+                        onChange={(e) => setShowDaiVan(e.target.checked)}
+                        className="accent-[#244C43]"
+                      />
+                      <span>Sao Đại Vận (ĐV.)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <TuViGridChart
+                  chart={chart}
+                  selectedChiIdx={selectedChiIdx}
+                  onSelectPalace={setSelectedChiIdx}
+                  onSelectStar={(starName, palace) => setSelectedStarModal({ starName, palace })}
+                  annualFortune={annualFortune}
+                  showLuuNien={showLuuNien}
+                  showDaiVan={showDaiVan}
+                />
+
+                <div className="bg-[#FAF8F2] rounded-2xl border border-[#C5A66A]/60 p-5 sm:p-6 shadow-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D8CFC0] pb-3 mb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#C5A66A]">
+                          Phân tích Tam Phương Tứ Chính
+                        </span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                          selectedPalaceAnalysis.rating === 'Thuận'
+                            ? 'bg-[#3D7954]/15 text-[#2F6544]'
+                            : selectedPalaceAnalysis.rating === 'Cần giữ'
+                            ? 'bg-[#C45D4B]/15 text-[#B04A38]'
+                            : 'bg-[#A78B62]/15 text-[#8C704B]'
+                        }`}>
+                          Xu hướng: {selectedPalaceAnalysis.rating}
+                        </span>
+                      </div>
+                      <h2 className="text-xl font-serif font-bold text-[#244C43] mt-1">
+                        Cung {selectedPalaceAnalysis.palace.name} tại {selectedPalaceAnalysis.palace.chiName}
+                        {selectedPalaceAnalysis.palace.isThan ? ' (Thân Cư)' : ''}
+                      </h2>
+                    </div>
+
+                    <button
+                      onClick={() => setActiveTab('palaces')}
+                      className="text-xs font-bold text-[#244C43] hover:underline flex items-center gap-1 print:hidden"
+                    >
+                      <span>Xem đầy đủ 12 cung</span>
+                      <LucideIcon name="chevron-right" className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm leading-relaxed">
+                    <div className="space-y-2.5">
+                      <p><strong>Chính tinh tọa thủ:</strong> {selectedPalaceAnalysis.sections.mainStarsText}</p>
+                      <p><strong>Phụ tinh hội tụ:</strong> {selectedPalaceAnalysis.sections.auxStarsText}</p>
+                    </div>
+                    <div className="space-y-2.5">
+                      <p><strong>Tam phương tứ chính:</strong> {selectedPalaceAnalysis.sections.tptcText}</p>
+                      <div className="p-3 rounded-xl bg-[#F3F0E5] border border-[#D8CFC0] text-xs">
+                        <strong>Điểm sáng & Lưu ý:</strong> {selectedPalaceAnalysis.sections.strengths} {selectedPalaceAnalysis.sections.cautions}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {chart.tuHoaList.map((th, idx) => (
+                    <div key={idx} className="bg-[#FAF8F2] p-4 rounded-2xl border border-[#D8CFC0]">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                          th.hoa === 'Hóa Kỵ' ? 'bg-[#C45D4B]/15 text-[#C45D4B]' : 'bg-[#244C43]/10 text-[#244C43]'
+                        }`}>
+                          {th.hoa}
+                        </span>
+                        <span className="text-xs text-[#244C43]/70">{th.palace} ({th.chiName})</span>
+                      </div>
+                      <div className="font-bold text-base text-[#244C43] mt-1">{th.star}</div>
+                      <p className="text-xs text-[#244C43]/75 mt-1">
+                        {th.hoa === 'Hóa Lộc' && 'Tăng trưởng nguồn lực, cơ hội và nhân duyên tại cung tọa thủ.'}
+                        {th.hoa === 'Hóa Quyền' && 'Nâng cao tính chủ động, năng lực dẫn dắt và kiểm soát tình huống.'}
+                        {th.hoa === 'Hóa Khoa' && 'Danh tiếng, trí tuệ, uy tín học thuật và khả năng hóa giải trắc trở.'}
+                        {th.hoa === 'Hóa Kỵ' && 'Tạo sự tập trung cao độ nhưng dễ phát sinh áp lực, trăn trở hoặc thị phi.'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: LUẬN GIẢI 12 CUNG */}
+            {activeTab === 'palaces' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-4 space-y-2">
+                  <h2 className="font-serif text-lg font-bold text-[#244C43] mb-3">Danh Mục 12 Cung</h2>
+                  {chart.palaces.map(p => {
+                    const analysis = generatePalaceAnalysis(chart, p.chiIdx);
+                    const active = p.chiIdx === selectedChiIdx;
+                    return (
+                      <button
+                        key={p.chiIdx}
+                        onClick={() => setSelectedChiIdx(p.chiIdx)}
+                        className={`w-full text-left p-3.5 rounded-2xl border transition flex items-center justify-between ${
+                          active
+                            ? 'bg-[#244C43] text-[#F3F0E5] border-[#244C43] shadow-sm'
+                            : 'bg-[#FAF8F2] text-[#1E2B27] border-[#D8CFC0] hover:border-[#244C43]'
+                        }`}
+                      >
+                        <div>
+                          <div className="font-bold text-sm flex items-center gap-1.5">
+                            <span>{p.name} ({p.chiName})</span>
+                            {p.isThan && (
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#C45D4B] text-white">THÂN</span>
+                            )}
+                          </div>
+                          <div className={`text-xs mt-0.5 ${active ? 'text-[#F3F0E5]/80' : 'text-[#244C43]/70'}`}>
+                            {p.chinhTinh.length > 0 ? p.chinhTinh.map(s => `${s.name} (${s.brightness})`).join(', ') : 'Vô Chính Diệu'}
+                          </div>
+                        </div>
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                          active ? 'bg-[#C5A66A] text-[#1E2B27]' : 'bg-[#D8CFC0]/60 text-[#244C43]'
+                        }`}>
+                          {analysis.rating}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="lg:col-span-8 bg-[#FAF8F2] rounded-3xl border border-[#D8CFC0] p-6 sm:p-8 space-y-5">
+                  <div className="border-b border-[#D8CFC0] pb-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#C5A66A]">
+                        Luận giải chuyên sâu dựa trên dữ liệu lá số
+                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#244C43] text-[#F3F0E5]">
+                        Đại hạn {selectedPalaceAnalysis.palace.daiHanStart} – {selectedPalaceAnalysis.palace.daiHanEnd} tuổi
+                      </span>
+                    </div>
+                    <h2 className="text-2xl font-serif font-bold text-[#244C43] mt-1">
+                      Cung {selectedPalaceAnalysis.palace.name} tại {selectedPalaceAnalysis.palace.chiName}
+                    </h2>
+                    <p className="text-xs text-[#244C43]/75 mt-1">{selectedPalaceAnalysis.meta.focus}</p>
+                  </div>
+
+                  <div className="space-y-4 text-sm leading-relaxed">
+                    <div className="p-4 rounded-2xl bg-[#F3F0E5] border border-[#D8CFC0]">
+                      <h3 className="font-bold text-[#244C43] mb-1">1. Chính tinh & Độ sáng</h3>
+                      <p>{selectedPalaceAnalysis.sections.mainStarsText}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-[#F3F0E5] border border-[#D8CFC0]">
+                      <h3 className="font-bold text-[#244C43] mb-1">2. Phụ tinh & Sự kết hợp</h3>
+                      <p>{selectedPalaceAnalysis.sections.auxStarsText}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-[#F3F0E5] border border-[#D8CFC0]">
+                      <h3 className="font-bold text-[#244C43] mb-1">3. Tam phương tứ chính & Tứ Hóa</h3>
+                      <p>{selectedPalaceAnalysis.sections.tptcText}</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 rounded-2xl bg-[#3D7954]/10 border border-[#3D7954]/30">
+                        <h4 className="font-bold text-[#2F6544] mb-1">Điểm mạnh nổi bật</h4>
+                        <p className="text-xs leading-relaxed">{selectedPalaceAnalysis.sections.strengths || 'Khả năng thích ứng linh hoạt theo hoàn cảnh thực tế.'}</p>
+                      </div>
+                      <div className="p-4 rounded-2xl bg-[#C45D4B]/10 border border-[#C45D4B]/30">
+                        <h4 className="font-bold text-[#B04A38] mb-1">Điều cần lưu ý</h4>
+                        <p className="text-xs leading-relaxed">{selectedPalaceAnalysis.sections.cautions || 'Cần giữ sự cân bằng giữa lý trí và cảm xúc khi ra quyết định.'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: ĐẠI HẠN & TIỂU HẠN */}
+            {activeTab === 'fortune' && (
+              <div className="space-y-6">
+                <div className="bg-[#FAF8F2] p-6 rounded-3xl border border-[#D8CFC0]">
+                  <h2 className="font-serif text-xl font-bold text-[#244C43] mb-1">
+                    12 Giai Đoạn Đại Hạn (Chu Kỳ 10 Năm)
+                  </h2>
+                  <p className="text-xs text-[#244C43]/75 mb-4">
+                    Cục: <strong>{chart.banMenh.cucInfo.name}</strong> · Chiều đi: <strong>{chart.banMenh.thuanNghich}</strong>
+                  </p>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    {[...chart.palaces]
+                      .sort((a, b) => a.daiHanStart - b.daiHanStart)
+                      .map(p => {
+                        const isCurrent = annualFortune.lunarAge >= p.daiHanStart && annualFortune.lunarAge <= p.daiHanEnd;
+                        return (
+                          <div
+                            key={p.chiIdx}
+                            onClick={() => { setSelectedChiIdx(p.chiIdx); setActiveTab('palaces'); }}
+                            className={`p-3.5 rounded-2xl border cursor-pointer transition ${
+                              isCurrent
+                                ? 'bg-[#244C43] text-[#F3F0E5] border-[#244C43] shadow-md'
+                                : 'bg-[#F3F0E5] text-[#1E2B27] border-[#D8CFC0] hover:border-[#244C43]'
+                            }`}
+                          >
+                            <div className="text-xs font-bold text-[#C5A66A]">{p.daiHanStart} – {p.daiHanEnd} tuổi</div>
+                            <div className="font-bold text-sm mt-1">{p.name} ({p.chiName})</div>
+                            <div className={`text-[11px] mt-1 ${isCurrent ? 'text-[#F3F0E5]/80' : 'text-[#244C43]/70'}`}>
+                              {p.chinhTinh.length > 0 ? p.chinhTinh.map(s => s.name).join(', ') : 'Vô Chính Diệu'}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                <div className="bg-[#FAF8F2] p-6 rounded-3xl border border-[#D8CFC0]">
+                  <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#D8CFC0] pb-4 mb-5">
+                    <div>
+                      <h2 className="font-serif text-xl font-bold text-[#244C43]">
+                        Vận Trình Năm {targetYear} ({annualFortune.canChi}) — {annualFortune.lunarAge} Tuổi Âm
+                      </h2>
+                      <p className="text-xs text-[#244C43]/75 mt-1">
+                        Đại hạn: <strong>{annualFortune.activeDaiHan.name} ({annualFortune.activeDaiHan.daiHanStart}–{annualFortune.activeDaiHan.daiHanEnd}t)</strong> ·
+                        Tiểu hạn tại: <strong>{annualFortune.tieuHanPalace.name} ({annualFortune.tieuHanPalace.chiName})</strong> ·
+                        Lưu niên tại: <strong>{annualFortune.luuNienPalace.name} ({annualFortune.luuNienPalace.chiName})</strong>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setTargetYear(y => y - 1)}
+                        className="px-3 py-1.5 rounded-xl bg-[#F3F0E5] border border-[#D8CFC0] text-xs font-bold"
+                      >
+                        ← Năm trước
+                      </button>
+                      <button
+                        onClick={() => setTargetYear(y => y + 1)}
+                        className="px-3 py-1.5 rounded-xl bg-[#244C43] text-[#F3F0E5] text-xs font-bold"
+                      >
+                        Năm sau →
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+                    {annualFortune.luuTuHoa.map((item, i) => (
+                      <div key={i} className="p-3.5 rounded-2xl bg-[#F3F0E5] border border-[#D8CFC0]">
+                        <div className="text-xs font-bold text-[#493C52]">{item.hoa}</div>
+                        <div className="font-bold text-sm text-[#244C43] mt-0.5">{item.star}</div>
+                        <div className="text-xs text-[#244C43]/75 mt-0.5">Tại cung {item.palace} ({item.chiName})</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm leading-relaxed">
+                    <div className="p-4 rounded-2xl bg-[#F3F0E5] border border-[#D8CFC0]">
+                      <h3 className="font-bold text-[#244C43] mb-1.5">1. Tổng quan & Công việc</h3>
+                      <p>
+                        Năm {annualFortune.canChi}, Tiểu hạn vận hành tại cung <strong>{annualFortune.tieuHanPalace.name}</strong> ({annualFortune.tieuHanPalace.chiName}) trong bối cảnh Đại hạn <strong>{annualFortune.activeDaiHan.name}</strong>. Các quyết định nghề nghiệp nên bám sát trục tam hợp của cung Tiểu hạn để tối ưu nguồn lực.
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-[#F3F0E5] border border-[#D8CFC0]">
+                      <h3 className="font-bold text-[#244C43] mb-1.5">2. Tài chính & Quan hệ</h3>
+                      <p>
+                        Lưu Hóa Lộc kích hoạt sao <strong>{annualFortune.luuTuHoa[0].star}</strong> tại cung <strong>{annualFortune.luuTuHoa[0].palace}</strong> mở ra cơ hội tăng trưởng, trong khi Lưu Hóa Kỵ đi cùng <strong>{annualFortune.luuTuHoa[3].star}</strong> tại <strong>{annualFortune.luuTuHoa[3].palace}</strong> nhắc nhở cần minh bạch giấy tờ và giao tiếp.
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-[#F3F0E5] border border-[#D8CFC0]">
+                      <h3 className="font-bold text-[#244C43] mb-1.5">3. Sức khỏe & Chủ động chuẩn bị</h3>
+                      <p>
+                        Chú ý giữ nhịp sinh hoạt điều độ vào các tháng hạn trùng cung có Lưu Tang Môn, Lưu Bạch Hổ hoặc Hóa Kỵ hội chiếu; ưu tiên rèn luyện thể chất và kiểm tra sức khỏe định kỳ.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 5: LUẬN GIẢI CHỦ ĐỀ */}
+            {activeTab === 'topics' && (
+              <div className="space-y-6">
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(TOPIC_CONFIG).map(([key, cfg]) => {
+                    const active = selectedTopic === key;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setSelectedTopic(key)}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold border transition ${
+                          active
+                            ? 'bg-[#244C43] text-[#F3F0E5] border-[#244C43]'
+                            : 'bg-[#FAF8F2] text-[#244C43] border-[#D8CFC0] hover:border-[#244C43]'
+                        }`}
+                      >
+                        <LucideIcon name={cfg.icon} className="w-4 h-4 text-[#C5A66A]" />
+                        <span>{cfg.title}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {(() => {
+                  const topic = TOPIC_CONFIG[selectedTopic];
+                  const relatedAnalyses = topic.palaces
+                    .map(pName => chart.palaces.find(p => p.name === pName))
+                    .filter(Boolean)
+                    .map(p => generatePalaceAnalysis(chart, p.chiIdx));
+
+                  return (
+                    <div className="bg-[#FAF8F2] rounded-3xl border border-[#D8CFC0] p-6 sm:p-8 space-y-5">
+                      <div className="border-b border-[#D8CFC0] pb-4">
+                        <h2 className="text-2xl font-serif font-bold text-[#244C43]">{topic.title}</h2>
+                        <p className="text-xs text-[#244C43]/75 mt-1">
+                          Hệ thống cung liên quan: <strong>{topic.palaces.join(' · ')}</strong>
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {relatedAnalyses.map((item, idx) => (
+                          <div key={idx} className="p-4 rounded-2xl bg-[#F3F0E5] border border-[#D8CFC0] space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-[#244C43]">
+                                Cung {item.palace.name} ({item.palace.chiName})
+                              </span>
+                              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#244C43]/10 text-[#244C43]">
+                                {item.rating}
+                              </span>
+                            </div>
+                            <p className="text-xs leading-relaxed">{item.sections.mainStarsText}</p>
+                            <p className="text-xs leading-relaxed text-[#244C43]/85">{item.sections.tptcText}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* TAB 6: TRA CỨU SAO */}
+            {activeTab === 'stars' && (
+              <div className="space-y-6">
+                <div className="bg-[#FAF8F2] p-5 rounded-2xl border border-[#D8CFC0] flex flex-wrap items-center justify-between gap-4">
+                  <div className="relative flex-1 min-w-[240px]">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#244C43]/60">
+                      <LucideIcon name="search" className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="text"
+                      value={starSearch}
+                      onChange={(e) => setStarSearch(e.target.value)}
+                      placeholder="Tìm tên chính tinh hoặc phụ tinh (VD: Tử Vi, Thiên Đồng, Hóa Lộc...)"
+                      className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#F3F0E5] border border-[#D8CFC0] text-sm focus:outline-none focus:border-[#244C43]"
+                    />
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {['ALL', 'Kim', 'Mộc', 'Thủy', 'Hỏa', 'Thổ'].map(el => (
+                      <button
+                        key={el}
+                        onClick={() => setElementFilter(el)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
+                          elementFilter === el
+                            ? 'bg-[#244C43] text-[#F3F0E5] border-[#244C43]'
+                            : 'bg-[#F3F0E5] text-[#244C43] border-[#D8CFC0]'
+                        }`}
+                      >
+                        {el === 'ALL' ? 'Tất cả Ngũ hành' : el}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-serif text-lg font-bold text-[#244C43] mb-3">14 Chính Tinh</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Object.entries(CHINH_TINH_DATA)
+                      .filter(([name, info]) => {
+                        const matchName = name.toLowerCase().includes(starSearch.toLowerCase());
+                        const matchEl = elementFilter === 'ALL' || info.element === elementFilter;
+                        return matchName && matchEl;
+                      })
+                      .map(([name, info]) => {
+                        const locatedPalace = chart.palaces.find(p => p.chinhTinh.some(s => s.name === name));
+                        return (
+                          <div key={name} className="bg-[#FAF8F2] p-4 rounded-2xl border border-[#D8CFC0] space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-base" style={{ color: ELEMENT_COLORS[info.element] }}>
+                                {name}
+                              </span>
+                              <span className="text-xs px-2 py-0.5 rounded bg-[#F3F0E5] border border-[#D8CFC0] font-medium">
+                                Hành {info.element} · {info.group}
+                              </span>
+                            </div>
+                            <p className="text-xs leading-relaxed">{info.summary}</p>
+                            {locatedPalace && (
+                              <div className="text-[11px] text-[#244C43] font-semibold pt-1 border-t border-[#D8CFC0]">
+                                Trên lá số hiện tại: Cung {locatedPalace.name} ({locatedPalace.chiName})
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-serif text-lg font-bold text-[#244C43] mb-3">Hệ Thống Phụ Tinh</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {Object.entries(PHU_TINH_DATA)
+                      .filter(([name, info]) => {
+                        const matchName = name.toLowerCase().includes(starSearch.toLowerCase());
+                        const matchEl = elementFilter === 'ALL' || info.element === elementFilter;
+                        return matchName && matchEl;
+                      })
+                      .map(([name, info]) => (
+                        <div key={name} className="bg-[#FAF8F2] p-3.5 rounded-2xl border border-[#D8CFC0]">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-bold text-sm" style={{ color: ELEMENT_COLORS[info.element] }}>
+                              {name}
+                            </span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                              info.type === 'cat' ? 'bg-[#3D7954]/15 text-[#2F6544]' : 'bg-[#C45D4B]/15 text-[#B04A38]'
+                            }`}>
+                              {info.type === 'cat' ? 'Cát tinh' : 'Sát/Bại tinh'} · {info.element}
+                            </span>
+                          </div>
+                          <p className="text-xs text-[#244C43]/80">{info.desc}</p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 7: SO SÁNH LÁ SỐ */}
+            {activeTab === 'compare' && (
+              <div className="space-y-6">
+                <div className="bg-[#FAF8F2] p-6 rounded-3xl border border-[#D8CFC0]">
+                  <h2 className="font-serif text-xl font-bold text-[#244C43] mb-2">
+                    So Sánh Hai Lá Số Hoặc Hai Giờ Sinh
+                  </h2>
+                  <p className="text-xs text-[#244C43]/75 mb-4">
+                    Đối chiếu lá số hiện tại với một lá số đã lưu khác (hoặc tạo bản sao đổi giờ sinh để kiểm tra sự dịch chuyển cung Mệnh – Thân).
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <select
+                      value={compareProfileId}
+                      onChange={(e) => setCompareProfileId(e.target.value)}
+                      className="px-3.5 py-2 rounded-xl bg-[#F3F0E5] border border-[#D8CFC0] text-sm"
+                    >
+                      {savedProfiles.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.fullName} ({p.day}/{p.month}/{p.year} - {p.hour}h)
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      onClick={() => {
+                        const altHour = (Number(formInput.hour) + 2) % 24;
+                        const altProfile = {
+                          ...formInput,
+                          id: `alt-hour-${Date.now()}`,
+                          fullName: `${formInput.fullName} (Thử giờ ${altHour}h)`,
+                          hour: altHour
+                        };
+                        setSavedProfiles(prev => [altProfile, ...prev]);
+                        setCompareProfileId(altProfile.id);
+                        notify(`Đã tạo bản đối chiếu giờ ${altHour}h.`);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-[#244C43] text-[#F3F0E5] text-xs font-bold"
+                    >
+                      + Tạo bản đối chiếu lệch 1 canh giờ
+                    </button>
+                  </div>
+                </div>
+
+                {(() => {
+                  const targetProfile = savedProfiles.find(p => p.id === compareProfileId) || TEST_CASE_1990;
+                  const chartB = calculateTuViChart(targetProfile);
+
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {[
+                        { label: 'Lá Số A (Hiện tại)', data: chart },
+                        { label: 'Lá Số B (Đối chiếu)', data: chartB }
+                      ].map((item, idx) => (
+                        <div key={idx} className="bg-[#FAF8F2] p-6 rounded-3xl border border-[#D8CFC0] space-y-3">
+                          <div className="text-xs font-bold uppercase tracking-wider text-[#C5A66A]">{item.label}</div>
+                          <h3 className="text-lg font-bold text-[#244C43]">{item.data.input.fullName}</h3>
+                          <div className="text-xs space-y-1.5 text-[#1E2B27]">
+                            <div>Dương lịch: <strong>{item.data.solarDate.day}/{item.data.solarDate.month}/{item.data.solarDate.year}</strong></div>
+                            <div>Âm lịch: <strong>{item.data.lunarDate.day}/{item.data.lunarDate.month}/{item.data.lunarDate.year} ({item.data.canChi.yearCan} {item.data.canChi.yearChi})</strong></div>
+                            <div>Bản mệnh: <strong>{item.data.banMenh.napAm.name}</strong> · <strong>{item.data.banMenh.cucInfo.name}</strong></div>
+                            <div>Cung Mệnh: <strong>{CHI[item.data.banMenh.menhPos]}</strong> ({item.data.palaces[item.data.banMenh.menhPos].chinhTinh.map(s => s.name).join(', ') || 'Vô Chính Diệu'})</div>
+                            <div>Cung Thân: <strong>{CHI[item.data.banMenh.thanPos]}</strong> (Thân cư {item.data.banMenh.thanCuPalaceName})</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* TAB 8: HỒ SƠ ĐÃ LƯU */}
+            {activeTab === 'saved' && (
+              <div className="bg-[#FAF8F2] rounded-3xl border border-[#D8CFC0] p-6 sm:p-8">
+                <div className="flex items-center justify-between border-b border-[#D8CFC0] pb-4 mb-5">
+                  <div>
+                    <h2 className="font-serif text-xl font-bold text-[#244C43]">Hồ Sơ Lá Số Đã Lưu</h2>
+                    <p className="text-xs text-[#244C43]/75 mt-1">
+                      Dữ liệu được lưu trữ bền vững trên trình duyệt của bạn. Nhấn vào từng hồ sơ để mở lá số.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('create')}
+                    className="px-4 py-2 rounded-xl bg-[#244C43] text-[#F3F0E5] text-xs font-bold"
+                  >
+                    + Thêm lá số mới
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {savedProfiles.map(prof => {
+                    const previewChart = calculateTuViChart(prof);
+                    const isCurrent = prof.id === formInput.id;
+                    return (
+                      <div
+                        key={prof.id}
+                        className={`p-4 rounded-2xl border transition flex flex-col justify-between ${
+                          isCurrent ? 'bg-[#244C43]/[0.07] border-[#244C43]' : 'bg-[#F3F0E5] border-[#D8CFC0]'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-sm text-[#244C43]">{prof.fullName}</span>
+                            <span className="text-[11px] px-2 py-0.5 rounded bg-[#244C43] text-[#F3F0E5]">{prof.gender}</span>
+                          </div>
+                          <div className="text-xs text-[#244C43]/80 mt-2 space-y-1">
+                            <div>Ngày sinh: {prof.day}/{prof.month}/{prof.year} ({prof.calendarType === 'solar' ? 'DL' : 'ÂL'})</div>
+                            <div>Bản mệnh: {previewChart.banMenh.napAm.name} · {previewChart.banMenh.cucInfo.name}</div>
+                            <div>Mệnh tại {CHI[previewChart.banMenh.menhPos]} · Thân cư {previewChart.banMenh.thanCuPalaceName}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-3 mt-3 border-t border-[#D8CFC0]">
+                          <button
+                            onClick={() => { setFormInput(prof); setActiveTab('chart'); notify(`Đang xem lá số ${prof.fullName}`); }}
+                            className="text-xs font-bold text-[#244C43] hover:underline"
+                          >
+                            Mở lá số →
+                          </button>
+                          {savedProfiles.length > 1 && (
+                            <button
+                              onClick={() => handleDeleteProfile(prof.id)}
+                              className="p-1.5 rounded-lg text-[#C45D4B] hover:bg-[#C45D4B]/10"
+                              title="Xóa hồ sơ"
+                            >
+                              <LucideIcon name="trash-2" className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
